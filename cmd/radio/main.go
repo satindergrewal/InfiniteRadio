@@ -124,6 +124,7 @@ func main() {
 			"position":         pos.Seconds(),
 			"duration":         dur.Seconds(),
 			"caption":          sched.LastCaption(),
+			"lyrics":           "[Instrumental]",
 			"http_listeners":   broadcaster.ListenerCount(),
 			"webrtc_listeners": webrtcHandler.PeerCount(),
 			"config": map[string]any{

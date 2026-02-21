@@ -84,6 +84,71 @@
     width: 0%;
   }
 
+  .prompt-section {
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 1.5rem;
+  }
+
+  .prompt-toggle {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.7rem;
+    color: #555;
+    border-color: #1e1e2e;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    background: #0e0e16;
+    border-radius: 8px 8px 0 0;
+    display: none;
+  }
+
+  .prompt-toggle:hover {
+    color: #a78bfa;
+  }
+
+  .prompt-toggle.has-content {
+    display: block;
+  }
+
+  .prompt-panel {
+    background: #0e0e16;
+    border: 1px solid #1e1e2e;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 0.75rem 1rem;
+    display: none;
+  }
+
+  .prompt-panel.open {
+    display: block;
+  }
+
+  .prompt-label {
+    font-size: 0.65rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.25rem;
+  }
+
+  .prompt-text {
+    font-size: 0.8rem;
+    color: #999;
+    font-style: italic;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+  }
+
+  .prompt-text:last-child {
+    margin-bottom: 0;
+  }
+
+  .prompt-text.lyrics {
+    color: #666;
+    font-style: normal;
+  }
+
   .controls {
     display: flex;
     gap: 1rem;
@@ -330,6 +395,16 @@
   </div>
 </div>
 
+<div class="prompt-section">
+  <button class="prompt-toggle" id="promptToggle" onclick="togglePrompt()">Prompt &amp; Lyrics</button>
+  <div class="prompt-panel" id="promptPanel">
+    <div class="prompt-label">Caption (sent to ACE-Step)</div>
+    <div class="prompt-text" id="promptCaption">--</div>
+    <div class="prompt-label">Lyrics</div>
+    <div class="prompt-text lyrics" id="promptLyrics">--</div>
+  </div>
+</div>
+
 <div class="controls">
   <button class="play-btn" id="playBtn" onclick="togglePlay()">&#9654;</button>
   <button onclick="skip()">Skip</button>
@@ -497,6 +572,10 @@ function toggleStats() {
   document.getElementById('statsPanel').classList.toggle('open');
 }
 
+function togglePrompt() {
+  document.getElementById('promptPanel').classList.toggle('open');
+}
+
 // Slider controls
 const trackDurSlider = document.getElementById('trackDurSlider');
 const crossfadeSlider = document.getElementById('crossfadeSlider');
@@ -599,12 +678,22 @@ setInterval(async () => {
       }
     }
 
-    // Caption display (shown when LLM is generating captions)
+    // Caption display in stats (shown when LLM is generating captions)
     if (data.caption) {
       document.getElementById('captionRow').style.display = 'block';
       document.getElementById('statCaption').textContent = data.caption;
     } else {
       document.getElementById('captionRow').style.display = 'none';
+    }
+
+    // Prompt & Lyrics panel
+    const promptToggle = document.getElementById('promptToggle');
+    if (data.caption || data.lyrics) {
+      promptToggle.classList.add('has-content');
+      document.getElementById('promptCaption').textContent = data.caption || '(static caption)';
+      document.getElementById('promptLyrics').textContent = data.lyrics || '--';
+    } else {
+      promptToggle.classList.remove('has-content');
     }
 
   } catch (e) {

@@ -18,6 +18,7 @@ type Pipeline struct {
 	frameCh      chan []int16
 	skipCh       chan struct{}
 	crossfadeDur time.Duration
+	decodedCh    chan *decodedTrack // exposed for queue counting
 
 	mu            sync.RWMutex
 	currentTrack  TrackInfo
@@ -32,6 +33,7 @@ func NewPipeline(crossfadeDuration time.Duration) *Pipeline {
 		frameCh:      make(chan []int16, 100),
 		skipCh:       make(chan struct{}, 1),
 		crossfadeDur: crossfadeDuration,
+		decodedCh:    make(chan *decodedTrack, 4),
 	}
 }
 
@@ -45,9 +47,13 @@ func (p *Pipeline) Enqueue(t TrackInfo) {
 	p.trackCh <- t
 }
 
-// QueueSize returns the number of tracks waiting in the queue.
+// QueueSize returns the total number of tracks waiting (pending + decoded).
 func (p *Pipeline) QueueSize() int {
-	return len(p.trackCh)
+	n := len(p.trackCh)
+	if p.decodedCh != nil {
+		n += len(p.decodedCh)
+	}
+	return n
 }
 
 // Skip interrupts the current track.
@@ -88,9 +94,8 @@ func (p *Pipeline) Run(ctx context.Context) {
 	defer ticker.Stop()
 
 	// Background decoder: converts file paths to decoded PCM
-	decodedCh := make(chan *decodedTrack, 4)
 	go func() {
-		defer close(decodedCh)
+		defer close(p.decodedCh)
 		for {
 			select {
 			case <-ctx.Done():
@@ -105,7 +110,7 @@ func (p *Pipeline) Run(ctx context.Context) {
 					continue
 				}
 				select {
-				case decodedCh <- &decodedTrack{info: t, samples: samples}:
+				case p.decodedCh <- &decodedTrack{info: t, samples: samples}:
 				case <-ctx.Done():
 					return
 				}
@@ -127,7 +132,7 @@ func (p *Pipeline) Run(ctx context.Context) {
 			select {
 			case <-ctx.Done():
 				return
-			case d, ok := <-decodedCh:
+			case d, ok := <-p.decodedCh:
 				if !ok {
 					return
 				}
@@ -136,7 +141,7 @@ func (p *Pipeline) Run(ctx context.Context) {
 			}
 		}
 
-		next, nextStart := p.playTrack(ctx, ticker, decodedCh, dt, startFrame)
+		next, nextStart := p.playTrack(ctx, ticker, p.decodedCh, dt, startFrame)
 		if next != nil {
 			pending = next
 			startFrame = nextStart
