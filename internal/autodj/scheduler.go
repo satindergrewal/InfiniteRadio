@@ -197,10 +197,13 @@ func (s *Scheduler) generateTrack(ctx context.Context) {
 	nameFn := s.nameFn
 	s.mu.RUnlock()
 
-	// Try LLM caption first, fall back to static
+	// Try LLM caption first, fall back to static.
+	// Use a short timeout so a slow LLM never blocks track generation.
 	var caption string
 	if captionFn != nil {
-		caption = captionFn(ctx, genre)
+		llmCtx, llmCancel := context.WithTimeout(ctx, 15*time.Second)
+		caption = captionFn(llmCtx, genre)
+		llmCancel()
 	}
 	if caption == "" {
 		caption = GetCaption(genre)
@@ -241,10 +244,12 @@ func (s *Scheduler) generateTrack(ctx context.Context) {
 		return
 	}
 
-	// Try LLM name, fall back to deterministic
+	// Try LLM name, fall back to deterministic.
 	var trackName string
 	if nameFn != nil {
-		trackName = nameFn(ctx, genre, taskID, caption)
+		nameCtx, nameCancel := context.WithTimeout(ctx, 15*time.Second)
+		trackName = nameFn(nameCtx, genre, taskID, caption)
+		nameCancel()
 	}
 	if trackName == "" {
 		trackName = TrackName(genre, taskID)
