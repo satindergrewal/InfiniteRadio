@@ -1,4 +1,4 @@
-# drift (codename)
+# Infinara
 
 Self-hosted AI radio station that generates infinite music with smooth genre transitions. Runs on your GPU, streams to your browser.
 
@@ -19,8 +19,8 @@ Self-hosted AI radio station that generates infinite music with smooth genre tra
 ## Quick Start
 
 ```bash
-git clone https://github.com/satindergrewal/InfiniteRadio.git
-cd InfiniteRadio
+git clone https://github.com/satindergrewal/infinara.git
+cd infinara
 docker compose up --build
 ```
 
@@ -99,7 +99,7 @@ Override via the web UI or API: `POST /api/genre {"genre": "jazz"}`
 ## Project Structure
 
 ```
-drift/
+infinara/
 +-- cmd/radio/main.go          # Entrypoint
 +-- internal/
 |   +-- config/config.go       # Environment-based configuration
@@ -135,13 +135,13 @@ drift/
 Build locally (requires Go 1.25+, FFmpeg, libopus):
 
 ```bash
-go build -o radio ./cmd/radio
+go build -o infinara ./cmd/radio
 ```
 
 Run without Docker (point at a running ACE-Step instance):
 
 ```bash
-ACESTEP_API_URL=http://localhost:8000 ./radio
+ACESTEP_API_URL=http://localhost:8000 ./infinara
 ```
 
 ## Acknowledgments

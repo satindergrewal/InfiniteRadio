@@ -226,7 +226,7 @@ func (c *Client) downloadAudio(fileRef string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	tmpFile, err := os.CreateTemp("", "drift-*.mp3")
+	tmpFile, err := os.CreateTemp("", "infinara-*.mp3")
 	if err != nil {
 		return "", fmt.Errorf("create temp file: %w", err)
 	}

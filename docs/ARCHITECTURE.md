@@ -1,12 +1,12 @@
 # Architecture
 
-Technical design document for drift. Explains how the system works and why decisions were made.
+Technical design document for Infinara. Explains how the system works and why decisions were made.
 
 ## System Overview
 
 ![System Architecture](images/architecture.svg)
 
-drift is two Docker containers talking over an internal network with a shared volume. The **acestep** container runs ACE-Step v1.5 on the GPU for music generation. The **radio** container is a Go binary handling everything else -- streaming, Auto-DJ, web UI, API.
+Infinara is two Docker containers talking over an internal network with a shared volume. The **acestep** container runs ACE-Step v1.5 on the GPU for music generation. The **radio** container is a Go binary handling everything else -- streaming, Auto-DJ, web UI, API.
 
 ## Audio Pipeline
 

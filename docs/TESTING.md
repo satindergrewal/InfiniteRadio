@@ -1,6 +1,6 @@
 # Testing
 
-How to verify drift works at each layer. Follow this order -- each step builds on the previous.
+How to verify Infinara works at each layer. Follow this order -- each step builds on the previous.
 
 ## Prerequisites
 
@@ -87,18 +87,18 @@ Verify the Go binary compiles and starts.
 
 ```bash
 # Build locally
-go build -o radio ./cmd/radio
+go build -o infinara ./cmd/radio
 
 # Start with a mock ACE-Step (or point at running container)
 ACESTEP_API_URL=http://localhost:8001 \
 ACESTEP_OUTPUT_DIR=/tmp/acestep-test \
 RADIO_PORT=8080 \
-./radio
+./infinara
 ```
 
 **Expected:** Logs showing:
 ```
-drift radio starting up...
+infinara starting up...
 Waiting for ACE-Step API to be ready...
 ACE-Step API is healthy
 Auto-DJ started with genre: lofi hip hop
@@ -204,7 +204,7 @@ docker compose up --build
 1. ACE-Step starts, loads model, health check passes
 2. Radio starts, connects to ACE-Step
 3. Auto-DJ begins generating tracks
-4. "drift radio live on :8080"
+4. "infinara live on :8080"
 
 **Then verify:**
 - Open browser on another machine: `http://<server-ip>:8080`

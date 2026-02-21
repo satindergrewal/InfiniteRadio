@@ -7,7 +7,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=1 go build -o /radio ./cmd/radio
+RUN CGO_ENABLED=1 go build -o /infinara ./cmd/radio
 
 # ---
 
@@ -15,8 +15,8 @@ FROM alpine:3.21
 
 RUN apk add --no-cache ffmpeg opus opusfile ca-certificates
 
-COPY --from=builder /radio /radio
+COPY --from=builder /infinara /infinara
 
 EXPOSE 8080
 
-CMD ["/radio"]
+CMD ["/infinara"]

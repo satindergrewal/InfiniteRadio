@@ -1,6 +1,6 @@
 # Engineering Journal
 
-Architecture Decision Records (ADRs) and technical decisions for drift. Documents WHY, not just WHAT.
+Architecture Decision Records (ADRs) and technical decisions for Infinara. Documents WHY, not just WHAT.
 
 ---
 
@@ -153,14 +153,14 @@ Architecture Decision Records (ADRs) and technical decisions for drift. Document
 **Date:** 2025-02-21
 **Status:** Accepted
 
-**Context:** drift is a major rewrite of LaurieWired's InfiniteRadio. The original code no longer exists on main.
+**Context:** Infinara is a major rewrite of LaurieWired's InfiniteRadio. The original code no longer exists on main.
 
 **Decision:** Created `original/lauriewired` branch to preserve the original code frozen in time.
 
 **Rationale:**
 - Honors the original author's work (Apache 2.0 requires attribution, not preservation, but respect goes further than legal requirements).
 - Provides reference for anyone wanting to understand what was adapted (WebRTC patterns, Opus config, crossfade algorithm).
-- Clean separation -- main branch is drift, the branch is a historical record.
+- Clean separation -- main branch is Infinara, the branch is a historical record.
 
 ---
 

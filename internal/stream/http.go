@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os/exec"
 
-	"github.com/satindergrewal/drift/internal/audio"
+	"github.com/satindergrewal/infinara/internal/audio"
 )
 
 // HTTPHandler serves a chunked MP3 audio stream via HTTP.
@@ -32,7 +32,7 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store")
 	w.Header().Set("Connection", "close")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("ICY-Name", "drift radio")
+	w.Header().Set("ICY-Name", "infinara")
 
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()

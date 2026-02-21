@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/satindergrewal/drift/internal/acestep"
-	"github.com/satindergrewal/drift/internal/audio"
+	"github.com/satindergrewal/infinara/internal/acestep"
+	"github.com/satindergrewal/infinara/internal/audio"
 )
 
 // SchedulerConfig holds auto-DJ parameters.

@@ -10,13 +10,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/satindergrewal/drift/internal/acestep"
-	"github.com/satindergrewal/drift/internal/audio"
-	"github.com/satindergrewal/drift/internal/autodj"
-	"github.com/satindergrewal/drift/internal/config"
-	"github.com/satindergrewal/drift/internal/ollama"
-	"github.com/satindergrewal/drift/internal/stream"
-	"github.com/satindergrewal/drift/internal/web"
+	"github.com/satindergrewal/infinara/internal/acestep"
+	"github.com/satindergrewal/infinara/internal/audio"
+	"github.com/satindergrewal/infinara/internal/autodj"
+	"github.com/satindergrewal/infinara/internal/config"
+	"github.com/satindergrewal/infinara/internal/ollama"
+	"github.com/satindergrewal/infinara/internal/stream"
+	"github.com/satindergrewal/infinara/internal/web"
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 	// ACE-Step client
 	client := acestep.NewClient(cfg.ACEStepAPIURL, cfg.ACEStepAPIKey, cfg.ACEStepOutputDir)
 
-	log.Println("drift radio starting up...")
+	log.Println("infinara starting up...")
 
 	healthCtx, healthCancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer healthCancel()
@@ -275,7 +275,7 @@ func main() {
 		server.Close()
 	}()
 
-	log.Printf("drift radio live on %s", addr)
+	log.Printf("infinara live on %s", addr)
 	if err := server.ListenAndServe(); err != http.ErrServerClosed {
 		log.Fatalf("HTTP server error: %v", err)
 	}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/pion/webrtc/v4"
 	"github.com/pion/webrtc/v4/pkg/media"
-	"github.com/satindergrewal/drift/internal/audio"
+	"github.com/satindergrewal/infinara/internal/audio"
 	"gopkg.in/hraban/opus.v2"
 )
 
@@ -62,7 +62,7 @@ func (h *WebRTCHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	audioTrack, err := webrtc.NewTrackLocalStaticSample(
 		webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeOpus},
 		"audio",
-		"drift-radio",
+		"infinara",
 	)
 	if err != nil {
 		pc.Close()

@@ -1,6 +1,6 @@
 # Roadmap
 
-Public roadmap for drift. Phase 1 is the current focus.
+Public roadmap for Infinara. Phase 1 is the current focus.
 
 ## Phase 1: Core Radio (Current)
 

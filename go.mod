@@ -1,4 +1,4 @@
-module github.com/satindergrewal/drift
+module github.com/satindergrewal/infinara
 
 go 1.25.0
 
