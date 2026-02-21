@@ -30,12 +30,15 @@ services:
       - ACESTEP_OUTPUT_DIR=/acestep-outputs
       - RADIO_PORT=8080
       - RADIO_GENRE=lofi hip hop
-      - RADIO_TRACK_DURATION=180
-      - RADIO_CROSSFADE_DURATION=8
-      - RADIO_BUFFER_AHEAD=3
-      - RADIO_DWELL_MIN=300
-      - RADIO_DWELL_MAX=900
-      - RADIO_INFERENCE_STEPS=8
+      - RADIO_TRACK_DURATION=10
+      - RADIO_CROSSFADE_DURATION=3
+      - RADIO_BUFFER_AHEAD=2
+      - RADIO_DWELL_MIN=60
+      - RADIO_DWELL_MAX=120
+      - RADIO_INFERENCE_STEPS=50
+      - RADIO_GUIDANCE_SCALE=4.0
+      - RADIO_SHIFT=3.0
+      - RADIO_AUDIO_FORMAT=flac
     depends_on:
       acestep:
         condition: service_healthy

@@ -51,6 +51,9 @@ func main() {
 		DwellMin:       cfg.DwellMin,
 		DwellMax:       cfg.DwellMax,
 		InferenceSteps: cfg.InferenceSteps,
+		GuidanceScale:  cfg.GuidanceScale,
+		Shift:          cfg.Shift,
+		AudioFormat:    cfg.AudioFormat,
 	})
 	go sched.Run(ctx)
 

@@ -13,6 +13,7 @@ func TestLoadDefaults(t *testing.T) {
 		"RADIO_PORT", "RADIO_GENRE", "RADIO_TRACK_DURATION",
 		"RADIO_CROSSFADE_DURATION", "RADIO_BUFFER_AHEAD",
 		"RADIO_DWELL_MIN", "RADIO_DWELL_MAX", "RADIO_INFERENCE_STEPS",
+		"RADIO_GUIDANCE_SCALE", "RADIO_SHIFT", "RADIO_AUDIO_FORMAT",
 	}
 	for _, k := range envVars {
 		os.Unsetenv(k)
@@ -35,8 +36,8 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.StartingGenre != "lofi hip hop" {
 		t.Errorf("StartingGenre = %q, want 'lofi hip hop'", cfg.StartingGenre)
 	}
-	if cfg.TrackDuration != 180 {
-		t.Errorf("TrackDuration = %d, want 180", cfg.TrackDuration)
+	if cfg.TrackDuration != 90 {
+		t.Errorf("TrackDuration = %d, want 90", cfg.TrackDuration)
 	}
 	if cfg.CrossfadeDuration != 8*time.Second {
 		t.Errorf("CrossfadeDuration = %v, want 8s", cfg.CrossfadeDuration)
@@ -50,8 +51,17 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.DwellMax != 900 {
 		t.Errorf("DwellMax = %d, want 900", cfg.DwellMax)
 	}
-	if cfg.InferenceSteps != 8 {
-		t.Errorf("InferenceSteps = %d, want 8", cfg.InferenceSteps)
+	if cfg.InferenceSteps != 50 {
+		t.Errorf("InferenceSteps = %d, want 50", cfg.InferenceSteps)
+	}
+	if cfg.GuidanceScale != 4.0 {
+		t.Errorf("GuidanceScale = %f, want 4.0", cfg.GuidanceScale)
+	}
+	if cfg.Shift != 3.0 {
+		t.Errorf("Shift = %f, want 3.0", cfg.Shift)
+	}
+	if cfg.AudioFormat != "flac" {
+		t.Errorf("AudioFormat = %q, want 'flac'", cfg.AudioFormat)
 	}
 }
 
@@ -67,6 +77,9 @@ func TestLoadFromEnv(t *testing.T) {
 	t.Setenv("RADIO_DWELL_MIN", "120")
 	t.Setenv("RADIO_DWELL_MAX", "600")
 	t.Setenv("RADIO_INFERENCE_STEPS", "16")
+	t.Setenv("RADIO_GUIDANCE_SCALE", "7.5")
+	t.Setenv("RADIO_SHIFT", "4.0")
+	t.Setenv("RADIO_AUDIO_FORMAT", "wav")
 
 	cfg := Load()
 
@@ -102,6 +115,15 @@ func TestLoadFromEnv(t *testing.T) {
 	}
 	if cfg.InferenceSteps != 16 {
 		t.Errorf("InferenceSteps = %d, want 16", cfg.InferenceSteps)
+	}
+	if cfg.GuidanceScale != 7.5 {
+		t.Errorf("GuidanceScale = %f, want 7.5", cfg.GuidanceScale)
+	}
+	if cfg.Shift != 4.0 {
+		t.Errorf("Shift = %f, want 4.0", cfg.Shift)
+	}
+	if cfg.AudioFormat != "wav" {
+		t.Errorf("AudioFormat = %q, want 'wav'", cfg.AudioFormat)
 	}
 }
 

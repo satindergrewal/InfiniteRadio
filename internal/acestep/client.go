@@ -34,13 +34,21 @@ func NewClient(apiURL, apiKey, outputDir string) *Client {
 
 // GenerateRequest contains parameters for music generation.
 type GenerateRequest struct {
-	Caption        string `json:"caption"`
-	Lyrics         string `json:"lyrics"`
-	Duration       int    `json:"audio_duration"`
-	InferenceSteps int    `json:"inference_steps"`
-	Seed           int    `json:"seed"`
-	BatchSize      int    `json:"batch_size"`
-	AudioFormat    string `json:"audio_format"`
+	Caption        string  `json:"caption"`
+	Lyrics         string  `json:"lyrics"`
+	Duration       int     `json:"audio_duration"`
+	InferenceSteps int     `json:"inference_steps"`
+	GuidanceScale  float64 `json:"guidance_scale"`
+	Shift          float64 `json:"shift"`
+	InferMethod    string  `json:"infer_method"`
+	Thinking       bool    `json:"thinking"`
+	UseCotCaption  bool    `json:"use_cot_caption"`
+	UseCotLanguage bool    `json:"use_cot_language"`
+	VocalLanguage  string  `json:"vocal_language"`
+	Seed           int     `json:"seed"`
+	UseRandomSeed  bool    `json:"use_random_seed"`
+	BatchSize      int     `json:"batch_size"`
+	AudioFormat    string  `json:"audio_format"`
 }
 
 type releaseResp struct {

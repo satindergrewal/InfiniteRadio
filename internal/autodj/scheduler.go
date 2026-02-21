@@ -14,11 +14,14 @@ import (
 // SchedulerConfig holds auto-DJ parameters.
 type SchedulerConfig struct {
 	StartingGenre  string
-	TrackDuration  int // seconds
-	BufferAhead    int // tracks to pre-generate
-	DwellMin       int // min seconds per genre
-	DwellMax       int // max seconds per genre
-	InferenceSteps int // ACE-Step turbo steps
+	TrackDuration  int     // seconds
+	BufferAhead    int     // tracks to pre-generate
+	DwellMin       int     // min seconds per genre
+	DwellMax       int     // max seconds per genre
+	InferenceSteps int     // diffusion steps (base: 50+, turbo: 8)
+	GuidanceScale  float64 // CFG strength (base/sft only)
+	Shift          float64 // timestep shift
+	AudioFormat    string  // flac, mp3, wav
 }
 
 // SchedulerStatus is the current state of the auto-DJ.
@@ -150,12 +153,20 @@ func (s *Scheduler) generateTrack(ctx context.Context) {
 
 	taskID, err := s.client.Generate(ctx, acestep.GenerateRequest{
 		Caption:        caption,
-		Lyrics:         "",
+		Lyrics:         "[Instrumental]",
 		Duration:       s.cfg.TrackDuration,
 		InferenceSteps: s.cfg.InferenceSteps,
-		Seed:           rand.IntN(1000000),
+		GuidanceScale:  s.cfg.GuidanceScale,
+		Shift:          s.cfg.Shift,
+		InferMethod:    "ode",
+		Thinking:       true,
+		UseCotCaption:  true,
+		UseCotLanguage: true,
+		VocalLanguage:  "en",
+		Seed:           -1,
+		UseRandomSeed:  true,
 		BatchSize:      1,
-		AudioFormat:    "mp3",
+		AudioFormat:    s.cfg.AudioFormat,
 	})
 	if err != nil {
 		log.Printf("Generate error: %v", err)
