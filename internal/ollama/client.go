@@ -67,10 +67,11 @@ func (c *Client) Generate(ctx context.Context, system, prompt string) (string, e
 		System: system,
 		Stream: false,
 		Options: map[string]any{
-			"temperature":   0.9,
-			"top_p":         0.95,
-			"num_predict":   128, // captions are short, cap output
+			"temperature":    0.9,
+			"top_p":          0.95,
+			"num_predict":    128, // captions are short, cap output
 			"repeat_penalty": 1.1,
+			"num_gpu":        0, // run on CPU -- ACE-Step needs all VRAM
 		},
 	}
 
