@@ -277,6 +277,41 @@
     color: #a78bfa;
     font-variant-numeric: tabular-nums;
   }
+
+  /* Sliders */
+  .sliders {
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 1.5rem;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .slider-label {
+    font-size: 0.8rem;
+    color: #666;
+    min-width: 80px;
+  }
+
+  .slider-row input[type="range"] {
+    flex: 1;
+    accent-color: #7c3aed;
+    height: 4px;
+    cursor: pointer;
+  }
+
+  .slider-value {
+    font-size: 0.8rem;
+    color: #a78bfa;
+    min-width: 40px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
 </style>
 </head>
 <body>
@@ -318,6 +353,19 @@
     <div class="stat-item"><span class="stat-label">Track length</span><span class="stat-value" id="statTrackLen">--</span></div>
     <div class="stat-item"><span class="stat-label">Crossfade</span><span class="stat-value" id="statCrossfade">--</span></div>
     <div class="stat-item"><span class="stat-label">Listeners</span><span class="stat-value" id="statListeners">0</span></div>
+  </div>
+</div>
+
+<div class="sliders">
+  <div class="slider-row">
+    <span class="slider-label">Track length</span>
+    <input type="range" id="trackDurSlider" min="15" max="180" step="5" value="60">
+    <span class="slider-value" id="trackDurValue">60s</span>
+  </div>
+  <div class="slider-row">
+    <span class="slider-label">Crossfade</span>
+    <input type="range" id="crossfadeSlider" min="1" max="20" step="1" value="10">
+    <span class="slider-value" id="crossfadeValue">10s</span>
   </div>
 </div>
 
@@ -444,6 +492,35 @@ function toggleStats() {
   document.getElementById('statsPanel').classList.toggle('open');
 }
 
+// Slider controls
+const trackDurSlider = document.getElementById('trackDurSlider');
+const crossfadeSlider = document.getElementById('crossfadeSlider');
+let configDebounce = null;
+
+trackDurSlider.oninput = () => {
+  document.getElementById('trackDurValue').textContent = trackDurSlider.value + 's';
+  sendConfig();
+};
+
+crossfadeSlider.oninput = () => {
+  document.getElementById('crossfadeValue').textContent = crossfadeSlider.value + 's';
+  sendConfig();
+};
+
+function sendConfig() {
+  clearTimeout(configDebounce);
+  configDebounce = setTimeout(() => {
+    fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        track_duration: parseInt(trackDurSlider.value),
+        crossfade: parseFloat(crossfadeSlider.value)
+      })
+    });
+  }, 300);
+}
+
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -504,6 +581,16 @@ setInterval(async () => {
       document.getElementById('statTrackLen').textContent = data.config.track_duration + 's';
       document.getElementById('statCrossfade').textContent = data.config.crossfade + 's';
       document.getElementById('statListeners').textContent = total;
+
+      // Sync sliders with server state (only if user isn't dragging)
+      if (document.activeElement !== trackDurSlider) {
+        trackDurSlider.value = data.config.track_duration;
+        document.getElementById('trackDurValue').textContent = data.config.track_duration + 's';
+      }
+      if (document.activeElement !== crossfadeSlider) {
+        crossfadeSlider.value = data.config.crossfade;
+        document.getElementById('crossfadeValue').textContent = data.config.crossfade + 's';
+      }
     }
 
   } catch (e) {

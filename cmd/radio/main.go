@@ -102,8 +102,8 @@ func main() {
 				"guidance_scale":  cfg.GuidanceScale,
 				"shift":           cfg.Shift,
 				"audio_format":    cfg.AudioFormat,
-				"track_duration":  cfg.TrackDuration,
-				"crossfade":       cfg.CrossfadeDuration.Seconds(),
+				"track_duration":  sched.TrackDuration(),
+				"crossfade":       pipeline.CrossfadeDuration().Seconds(),
 			},
 		})
 	})
@@ -166,6 +166,43 @@ func main() {
 		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.%s"`, name, cfg.AudioFormat))
 		w.Header().Set("Content-Type", "application/octet-stream")
 		http.ServeFile(w, r, track.Path)
+	})
+
+	mux.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "POST required", http.StatusMethodNotAllowed)
+			return
+		}
+		var req struct {
+			TrackDuration *int     `json:"track_duration"`
+			Crossfade     *float64 `json:"crossfade"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "invalid request", http.StatusBadRequest)
+			return
+		}
+		if req.TrackDuration != nil {
+			v := *req.TrackDuration
+			if v < 15 || v > 300 {
+				http.Error(w, "track_duration must be 15-300", http.StatusBadRequest)
+				return
+			}
+			sched.SetTrackDuration(v)
+		}
+		if req.Crossfade != nil {
+			v := *req.Crossfade
+			if v < 1 || v > 30 {
+				http.Error(w, "crossfade must be 1-30", http.StatusBadRequest)
+				return
+			}
+			pipeline.SetCrossfade(time.Duration(v * float64(time.Second)))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{
+			"ok":             true,
+			"track_duration": sched.TrackDuration(),
+			"crossfade":      pipeline.CrossfadeDuration().Seconds(),
+		})
 	})
 
 	mux.HandleFunc("/api/rate", func(w http.ResponseWriter, r *http.Request) {

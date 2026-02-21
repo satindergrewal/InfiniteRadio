@@ -58,6 +58,21 @@ func (p *Pipeline) Skip() {
 	}
 }
 
+// SetCrossfade updates the crossfade duration for future tracks.
+func (p *Pipeline) SetCrossfade(d time.Duration) {
+	p.mu.Lock()
+	p.crossfadeDur = d
+	p.mu.Unlock()
+	log.Printf("Crossfade set to %v", d)
+}
+
+// CrossfadeDuration returns the current crossfade setting.
+func (p *Pipeline) CrossfadeDuration() time.Duration {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.crossfadeDur
+}
+
 // Status returns current playback info.
 func (p *Pipeline) Status() (track TrackInfo, position, duration time.Duration) {
 	p.mu.RLock()
@@ -136,7 +151,7 @@ func (p *Pipeline) Run(ctx context.Context) {
 func (p *Pipeline) playTrack(ctx context.Context, ticker *time.Ticker, decodedCh <-chan *decodedTrack, dt *decodedTrack, startFrame int) (*decodedTrack, int) {
 	samples := dt.samples
 	totalFrames := len(samples) / FrameSamples
-	cfFrames := int(p.crossfadeDur.Seconds()) * SampleRate / FrameSize
+	cfFrames := int(p.CrossfadeDuration().Seconds()) * SampleRate / FrameSize
 	if cfFrames > totalFrames/2 {
 		cfFrames = totalFrames / 2 // don't crossfade more than half the track
 	}

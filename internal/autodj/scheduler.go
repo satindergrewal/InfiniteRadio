@@ -97,6 +97,21 @@ func (s *Scheduler) SetAutoDJ(enabled bool) {
 	s.mu.Unlock()
 }
 
+// SetTrackDuration updates the duration for future generated tracks (seconds).
+func (s *Scheduler) SetTrackDuration(seconds int) {
+	s.mu.Lock()
+	s.cfg.TrackDuration = seconds
+	s.mu.Unlock()
+	log.Printf("Track duration set to %ds", seconds)
+}
+
+// TrackDuration returns the current track duration setting.
+func (s *Scheduler) TrackDuration() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.TrackDuration
+}
+
 // Run starts the auto-DJ loop. Blocks until ctx is cancelled.
 func (s *Scheduler) Run(ctx context.Context) {
 	s.mu.Lock()
@@ -145,6 +160,7 @@ func (s *Scheduler) Run(ctx context.Context) {
 func (s *Scheduler) generateTrack(ctx context.Context) {
 	s.mu.RLock()
 	genre := s.currentGenre
+	trackDur := s.cfg.TrackDuration
 	s.mu.RUnlock()
 
 	caption := GetCaption(genre)
@@ -154,7 +170,7 @@ func (s *Scheduler) generateTrack(ctx context.Context) {
 	taskID, err := s.client.Generate(ctx, acestep.GenerateRequest{
 		Caption:        caption,
 		Lyrics:         "[Instrumental]",
-		Duration:       s.cfg.TrackDuration,
+		Duration:       trackDur,
 		InferenceSteps: s.cfg.InferenceSteps,
 		GuidanceScale:  s.cfg.GuidanceScale,
 		Shift:          s.cfg.Shift,
