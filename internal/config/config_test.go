@@ -39,8 +39,8 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.TrackDuration != 90 {
 		t.Errorf("TrackDuration = %d, want 90", cfg.TrackDuration)
 	}
-	if cfg.CrossfadeDuration != 8*time.Second {
-		t.Errorf("CrossfadeDuration = %v, want 8s", cfg.CrossfadeDuration)
+	if cfg.CrossfadeDuration != 18*time.Second {
+		t.Errorf("CrossfadeDuration = %v, want 18s", cfg.CrossfadeDuration)
 	}
 	if cfg.BufferAhead != 3 {
 		t.Errorf("BufferAhead = %d, want 3", cfg.BufferAhead)

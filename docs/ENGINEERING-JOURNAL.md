@@ -164,4 +164,76 @@ Architecture Decision Records (ADRs) and technical decisions for drift. Document
 
 ---
 
+## ADR-010: Ollama on Separate Machine (Split LLM/GPU Architecture)
+
+**Date:** 2026-02-21
+**Status:** Accepted
+
+**Context:** ACE-Step v1.5 consumes most of the GPU's VRAM. Running an LLM alongside it caused OOM errors and 500s from Ollama. Tried CPU-only inference (num_gpu=0) but context timeouts were too short for first model load.
+
+**Decision:** Run Ollama on a separate machine and call it over LAN. Make OLLAMA_URL and OLLAMA_MODEL configurable via env vars with docker-compose interpolation (`${OLLAMA_URL:-default}`).
+
+**Rationale:**
+- Dedicated machine for LLM can run larger models without VRAM contention
+- Zero GPU competition. ACE-Step gets the full VRAM budget.
+- LAN latency (~1ms) is negligible compared to LLM generation time (~2-5s for a caption)
+- Configurable: can point at any Ollama instance (local, remote, different machine)
+- Falls back gracefully to static captions if Ollama is unreachable
+
+**Trade-offs:**
+- Requires Ollama accessible on the network (OLLAMA_HOST=0.0.0.0)
+- Ollama desktop app may bind localhost by default -- needs configuration for LAN access
+- Extra network hop, but irrelevant at LAN speeds
+
+---
+
+## ADR-011: LLM-Generated Structure Tags for ACE-Step
+
+**Date:** 2026-02-21
+**Status:** Accepted
+
+**Context:** ACE-Step v1.5 supports section tags in the lyrics field (e.g., `[Intro - soft pads]`, `[Build - drums enter]`). These guide temporal progression of the generated music.
+
+**Decision:** Use the LLM (Ollama) to generate 3-5 structure tags per track, informed by genre and caption. Tags go into the `lyrics` field of the ACE-Step generation request.
+
+**Rationale:**
+- Structure tags give ACE-Step a temporal roadmap -- intro, build, climax, outro
+- LLM can reference specific instruments from the caption, creating coherent progression
+- Significant quality improvement in generated music output
+- Falls back to simple `[Instrumental]` if LLM fails (same as before)
+- 15s timeout prevents slow LLM from blocking track generation
+
+**Example output:**
+```
+[Instrumental]
+[Intro - vinyl crackle, tape hiss]
+[Theme - muted trumpet & warm beat]
+[Build - detuned piano layers in]
+[Outro - beat fades, vinyl sustains]
+```
+
+---
+
+## ADR-012: gemma3:27b as Default LLM for Captions
+
+**Date:** 2026-02-21
+**Status:** Accepted
+
+**Context:** Needed to select the best LLM model for generating ACE-Step captions, track names, and structure tags. Tested multiple models at different sizes.
+
+**Decision:** gemma3:27b as the default model.
+
+**Rationale:**
+- Excellent creative writing capabilities -- produces rich, specific musical descriptions
+- Fast enough for real-time caption generation (~2-5s per caption)
+- Produces clean output with minimal post-processing needed
+- Good balance of quality vs resource requirements
+
+**Trade-offs:**
+- Model is configurable via OLLAMA_MODEL env var -- can swap to anything Ollama supports
+- Smaller models (gemma3:12b, phi4) could work for faster generation at the cost of caption quality
+- Larger models may produce better captions but add latency to the generation loop
+
+---
+
 *New ADRs are added as decisions are made. Each records the context, decision, rationale, and trade-offs. Settled decisions aren't revisited unless new information changes the context.*
