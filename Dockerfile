@@ -13,7 +13,7 @@ RUN CGO_ENABLED=1 go build -o /radio ./cmd/radio
 
 FROM alpine:3.21
 
-RUN apk add --no-cache ffmpeg opus ca-certificates
+RUN apk add --no-cache ffmpeg opus opusfile ca-certificates
 
 COPY --from=builder /radio /radio
 
