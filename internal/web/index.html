@@ -45,6 +45,15 @@
     text-align: center;
   }
 
+  .track-name {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #e0e0e0;
+    margin-bottom: 0.25rem;
+    font-style: italic;
+    min-height: 1.4em;
+  }
+
   .genre-label {
     font-size: 1.4rem;
     font-weight: 500;
@@ -80,6 +89,8 @@
     gap: 1rem;
     margin-bottom: 1.5rem;
     align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   button {
@@ -131,6 +142,40 @@
   .rating button {
     font-size: 1.1rem;
     padding: 0.5rem 0.8rem;
+    position: relative;
+  }
+
+  .rating button.rated {
+    background: #2a1f4e;
+    border-color: #7c3aed;
+  }
+
+  .rating button .toast {
+    position: absolute;
+    top: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    color: #a78bfa;
+    opacity: 0;
+    transition: opacity 0.3s, top 0.3s;
+    pointer-events: none;
+  }
+
+  .rating button .toast.show {
+    opacity: 1;
+    top: -1.8rem;
+  }
+
+  .save-btn {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .save-btn.saved {
+    background: #1a2e1c;
+    border-color: #059669;
+    color: #34d399;
   }
 
   .genre-grid {
@@ -181,6 +226,57 @@
     color: #444;
     margin-top: 1rem;
   }
+
+  /* Stats panel */
+  .stats-toggle {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+    color: #666;
+    border-color: #1e1e2e;
+    margin-bottom: 0.75rem;
+  }
+
+  .stats-toggle:hover {
+    color: #a78bfa;
+  }
+
+  .stats-panel {
+    background: #0e0e16;
+    border: 1px solid #1e1e2e;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 1.5rem;
+    display: none;
+    font-size: 0.8rem;
+  }
+
+  .stats-panel.open {
+    display: block;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 1.5rem;
+  }
+
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #1a1a24;
+  }
+
+  .stat-label {
+    color: #555;
+  }
+
+  .stat-value {
+    color: #a78bfa;
+    font-variant-numeric: tabular-nums;
+  }
 </style>
 </head>
 <body>
@@ -189,6 +285,7 @@
 <p class="subtitle">infinite ai radio</p>
 
 <div class="now-playing">
+  <div class="track-name" id="trackName"></div>
   <div class="genre-label" id="genre">waiting...</div>
   <div class="track-time">
     <span id="position">0:00</span> / <span id="duration">0:00</span>
@@ -201,10 +298,26 @@
 <div class="controls">
   <button class="play-btn" id="playBtn" onclick="togglePlay()">&#9654;</button>
   <button onclick="skip()">Skip</button>
+  <button class="save-btn" id="saveBtn" onclick="saveTrack()">Save</button>
   <button id="autoDJBtn" class="active" onclick="toggleAutoDJ()">Auto-DJ</button>
   <div class="rating">
-    <button onclick="rate(1)">&#128077;</button>
-    <button onclick="rate(-1)">&#128078;</button>
+    <button id="thumbsUp" onclick="rate(1)">&#128077;<span class="toast" id="toastUp">Liked!</span></button>
+    <button id="thumbsDown" onclick="rate(-1)">&#128078;<span class="toast" id="toastDown">Noted</span></button>
+  </div>
+</div>
+
+<button class="stats-toggle" onclick="toggleStats()">Stats</button>
+
+<div class="stats-panel" id="statsPanel">
+  <div class="stats-grid">
+    <div class="stat-item"><span class="stat-label">Model</span><span class="stat-value" id="statModel">--</span></div>
+    <div class="stat-item"><span class="stat-label">Steps</span><span class="stat-value" id="statSteps">--</span></div>
+    <div class="stat-item"><span class="stat-label">Guidance</span><span class="stat-value" id="statGuidance">--</span></div>
+    <div class="stat-item"><span class="stat-label">Shift</span><span class="stat-value" id="statShift">--</span></div>
+    <div class="stat-item"><span class="stat-label">Format</span><span class="stat-value" id="statFormat">--</span></div>
+    <div class="stat-item"><span class="stat-label">Track length</span><span class="stat-value" id="statTrackLen">--</span></div>
+    <div class="stat-item"><span class="stat-label">Crossfade</span><span class="stat-value" id="statCrossfade">--</span></div>
+    <div class="stat-item"><span class="stat-label">Listeners</span><span class="stat-value" id="statListeners">0</span></div>
   </div>
 </div>
 
@@ -229,6 +342,8 @@ const genres = [
 const audio = document.getElementById('audio');
 const playBtn = document.getElementById('playBtn');
 let playing = false;
+let currentTrackId = '';
+let currentRating = 0;
 
 // Build genre grid
 const grid = document.getElementById('genreGrid');
@@ -281,11 +396,52 @@ function toggleAutoDJ() {
 }
 
 function rate(rating) {
+  if (currentRating === rating) {
+    currentRating = 0;
+    document.getElementById('thumbsUp').classList.remove('rated');
+    document.getElementById('thumbsDown').classList.remove('rated');
+    return;
+  }
+
+  currentRating = rating;
   fetch('/api/rate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ rating })
   });
+
+  const upBtn = document.getElementById('thumbsUp');
+  const downBtn = document.getElementById('thumbsDown');
+  upBtn.classList.toggle('rated', rating === 1);
+  downBtn.classList.toggle('rated', rating === -1);
+
+  const toastId = rating === 1 ? 'toastUp' : 'toastDown';
+  const toast = document.getElementById(toastId);
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1200);
+}
+
+function saveTrack() {
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = 'Saving...';
+
+  const a = document.createElement('a');
+  a.href = '/api/save';
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  btn.textContent = 'Saved!';
+  btn.classList.add('saved');
+  setTimeout(() => {
+    btn.textContent = 'Save';
+    btn.classList.remove('saved');
+  }, 2000);
+}
+
+function toggleStats() {
+  document.getElementById('statsPanel').classList.toggle('open');
 }
 
 function formatTime(seconds) {
@@ -301,10 +457,19 @@ setInterval(async () => {
     const data = await resp.json();
 
     document.getElementById('genre').textContent = data.genre || 'waiting...';
+    document.getElementById('trackName').textContent = data.track_name || '';
     document.getElementById('position').textContent = formatTime(data.position || 0);
     document.getElementById('duration').textContent = formatTime(data.duration || 0);
     document.getElementById('dwellTime').textContent = Math.round(data.dwell_remaining || 0);
     document.getElementById('queueSize').textContent = data.queue_size || 0;
+
+    // Reset rating state when track changes
+    if (data.track_id && data.track_id !== currentTrackId) {
+      currentTrackId = data.track_id;
+      currentRating = 0;
+      document.getElementById('thumbsUp').classList.remove('rated');
+      document.getElementById('thumbsDown').classList.remove('rated');
+    }
 
     // Progress bar
     if (data.duration > 0) {
@@ -328,6 +493,18 @@ setInterval(async () => {
     const total = (data.http_listeners || 0) + (data.webrtc_listeners || 0);
     document.getElementById('listeners').textContent =
       total > 0 ? total + ' listener' + (total !== 1 ? 's' : '') + ' connected' : '';
+
+    // Stats panel
+    if (data.config) {
+      document.getElementById('statModel').textContent = data.config.model || '--';
+      document.getElementById('statSteps').textContent = data.config.inference_steps || '--';
+      document.getElementById('statGuidance').textContent = data.config.guidance_scale || '--';
+      document.getElementById('statShift').textContent = data.config.shift || '--';
+      document.getElementById('statFormat').textContent = (data.config.audio_format || '--').toUpperCase();
+      document.getElementById('statTrackLen').textContent = data.config.track_duration + 's';
+      document.getElementById('statCrossfade').textContent = data.config.crossfade + 's';
+      document.getElementById('statListeners').textContent = total;
+    }
 
   } catch (e) {
     // API not ready yet

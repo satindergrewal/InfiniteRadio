@@ -41,3 +41,45 @@ func GetCaption(genre string) string {
 	}
 	return "Instrumental music, " + genre + " style, professional studio production, warm and immersive sound"
 }
+
+// genreAdjectives gives each genre a pool of evocative descriptors for track names.
+var genreAdjectives = map[string][]string{
+	"ambient":       {"floating", "weightless", "still", "glacial", "infinite"},
+	"chillwave":     {"hazy", "sunlit", "faded", "dreamy", "pastel"},
+	"lofi hip hop":  {"rainy", "dusty", "warm", "mellow", "quiet"},
+	"jazz":          {"smoky", "midnight", "velvet", "golden", "swinging"},
+	"bossa nova":    {"coastal", "breezy", "gentle", "tropical", "swaying"},
+	"acoustic folk": {"wooded", "fireside", "open", "rustic", "earthen"},
+	"classical":     {"delicate", "flowing", "stately", "luminous", "grand"},
+	"cinematic":     {"epic", "soaring", "vast", "rising", "thundering"},
+	"synthwave":     {"neon", "chrome", "pulsing", "electric", "retro"},
+	"electronic":    {"radiant", "surging", "prismatic", "kinetic", "orbital"},
+	"drum and bass": {"liquid", "rolling", "dark", "charged", "relentless"},
+	"disco funk":    {"groovy", "sparkling", "tight", "strutting", "vivid"},
+	"indie rock":    {"bright", "jangling", "wistful", "spirited", "raw"},
+	"rock":          {"thunderous", "blazing", "driven", "roaring", "massive"},
+}
+
+// TrackName generates a human-readable name from genre and track ID.
+// Uses the first 4 hex chars of the ID to pick a deterministic adjective.
+func TrackName(genre, trackID string) string {
+	if genre == "" || trackID == "" {
+		return ""
+	}
+
+	adjs := genreAdjectives[genre]
+	if len(adjs) == 0 {
+		return genre + " session"
+	}
+
+	// Use first hex chars of track ID as a simple hash for deterministic pick
+	var h int
+	for i := 0; i < len(trackID) && i < 8; i++ {
+		h = h*31 + int(trackID[i])
+	}
+	if h < 0 {
+		h = -h
+	}
+
+	return adjs[h%len(adjs)] + " " + genre
+}

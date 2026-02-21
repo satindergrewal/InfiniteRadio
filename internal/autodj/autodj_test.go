@@ -178,6 +178,51 @@ func TestCaptionsAreInstrumental(t *testing.T) {
 	}
 }
 
+// --- TrackName ---
+
+func TestTrackNameKnownGenre(t *testing.T) {
+	name := TrackName("jazz", "abc12345-def6-7890")
+	if name == "" {
+		t.Fatal("TrackName returned empty for known genre")
+	}
+	if !contains(name, "jazz") {
+		t.Errorf("TrackName should contain genre: got %q", name)
+	}
+}
+
+func TestTrackNameDeterministic(t *testing.T) {
+	a := TrackName("ambient", "test-id-001")
+	b := TrackName("ambient", "test-id-001")
+	if a != b {
+		t.Errorf("TrackName not deterministic: %q != %q", a, b)
+	}
+}
+
+func TestTrackNameEmpty(t *testing.T) {
+	if TrackName("", "some-id") != "" {
+		t.Error("TrackName should return empty for empty genre")
+	}
+	if TrackName("jazz", "") != "" {
+		t.Error("TrackName should return empty for empty trackID")
+	}
+}
+
+func TestTrackNameUnknownGenre(t *testing.T) {
+	name := TrackName("polka", "some-id")
+	if name != "polka session" {
+		t.Errorf("TrackName for unknown genre should be 'polka session', got %q", name)
+	}
+}
+
+func TestAllGenresHaveAdjectives(t *testing.T) {
+	for name := range MoodGraph {
+		adjs := genreAdjectives[name]
+		if len(adjs) == 0 {
+			t.Errorf("Genre %q has no adjectives for track naming", name)
+		}
+	}
+}
+
 // --- SchedulerConfig defaults ---
 
 func TestSchedulerConfigDefaults(t *testing.T) {

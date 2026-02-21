@@ -90,10 +90,21 @@ func main() {
 			"dwell_remaining":  djStatus.DwellRemaining,
 			"queue_size":       djStatus.QueueSize,
 			"track_id":         track.ID,
+			"track_name":       autodj.TrackName(track.Genre, track.ID),
+			"track_path":       track.Path,
 			"position":         pos.Seconds(),
 			"duration":         dur.Seconds(),
 			"http_listeners":   broadcaster.ListenerCount(),
 			"webrtc_listeners": webrtcHandler.PeerCount(),
+			"config": map[string]any{
+				"model":           "acestep-v15-base",
+				"inference_steps": cfg.InferenceSteps,
+				"guidance_scale":  cfg.GuidanceScale,
+				"shift":           cfg.Shift,
+				"audio_format":    cfg.AudioFormat,
+				"track_duration":  cfg.TrackDuration,
+				"crossfade":       cfg.CrossfadeDuration.Seconds(),
+			},
 		})
 	})
 
@@ -143,6 +154,18 @@ func main() {
 		sched.SetAutoDJ(req.Enabled)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{"ok": true, "auto_dj": req.Enabled})
+	})
+
+	mux.HandleFunc("/api/save", func(w http.ResponseWriter, r *http.Request) {
+		track, _, _ := pipeline.Status()
+		if track.Path == "" {
+			http.Error(w, "no track playing", http.StatusNotFound)
+			return
+		}
+		name := autodj.TrackName(track.Genre, track.ID)
+		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.%s"`, name, cfg.AudioFormat))
+		w.Header().Set("Content-Type", "application/octet-stream")
+		http.ServeFile(w, r, track.Path)
 	})
 
 	mux.HandleFunc("/api/rate", func(w http.ResponseWriter, r *http.Request) {
