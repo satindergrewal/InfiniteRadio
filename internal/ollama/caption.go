@@ -46,7 +46,9 @@ NEVER include:
 - Explanations, preambles, quotes, or formatting
 - The word "instrumental" (it's implied)
 
-Output format: ONLY the caption text. Nothing else. No quotes. No bullet points. No "Here's a caption:". Just the raw caption.`
+Output format: ONLY the caption text. Nothing else. No quotes. No bullet points. No "Here's a caption:". Just the raw caption.
+
+/no_think`
 
 // GenerateCaption creates a unique ACE-Step caption for a genre.
 // Returns empty string on failure (caller should fall back to static caption).
@@ -94,7 +96,9 @@ Rules:
 - No numbers, no "Track 1", no "Untitled"
 - Lowercase only
 
-Output ONLY the track name. Nothing else.`
+Output ONLY the track name. Nothing else.
+
+/no_think`
 
 // GenerateName creates an evocative track name from genre and caption.
 // Returns empty string on failure (caller should fall back to deterministic name).
