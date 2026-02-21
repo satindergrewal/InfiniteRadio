@@ -1,6 +1,6 @@
 FROM golang:1.25-alpine AS builder
 
-RUN apk add --no-cache gcc musl-dev opus-dev pkgconfig
+RUN apk add --no-cache gcc musl-dev opus-dev opusfile-dev pkgconfig
 
 WORKDIR /app
 COPY go.mod go.sum ./
