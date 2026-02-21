@@ -17,4 +17,5 @@ type TrackInfo struct {
 	ID    string
 	Genre string
 	Path  string
+	Name  string // display name (LLM-generated or deterministic)
 }

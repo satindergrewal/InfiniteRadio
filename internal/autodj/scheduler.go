@@ -32,16 +32,27 @@ type SchedulerStatus struct {
 	QueueSize      int     `json:"queue_size"`
 }
 
+// CaptionFunc generates a caption for a genre. Returns empty string on failure.
+type CaptionFunc func(ctx context.Context, genre string) string
+
+// NameFunc generates a track name from genre, trackID, and caption.
+// Returns empty string on failure.
+type NameFunc func(ctx context.Context, genre, trackID, caption string) string
+
 // Scheduler manages genre transitions and track generation.
 type Scheduler struct {
 	client   *acestep.Client
 	pipeline *audio.Pipeline
 	cfg      SchedulerConfig
 
+	captionFn CaptionFunc // optional LLM caption generator
+	nameFn    NameFunc    // optional LLM track name generator
+
 	mu           sync.RWMutex
 	currentGenre string
 	autoDJ       bool
 	dwellEnd     time.Time
+	lastCaption  string // last generated caption (for status display)
 
 	genreOverrideCh chan string
 }
@@ -56,6 +67,27 @@ func NewScheduler(client *acestep.Client, pipeline *audio.Pipeline, cfg Schedule
 		autoDJ:          true,
 		genreOverrideCh: make(chan string, 1),
 	}
+}
+
+// SetCaptionFunc sets the LLM-powered caption generator. Pass nil to use static captions.
+func (s *Scheduler) SetCaptionFunc(fn CaptionFunc) {
+	s.mu.Lock()
+	s.captionFn = fn
+	s.mu.Unlock()
+}
+
+// SetNameFunc sets the LLM-powered name generator. Pass nil to use deterministic names.
+func (s *Scheduler) SetNameFunc(fn NameFunc) {
+	s.mu.Lock()
+	s.nameFn = fn
+	s.mu.Unlock()
+}
+
+// LastCaption returns the caption used for the most recent track generation.
+func (s *Scheduler) LastCaption() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.lastCaption
 }
 
 // Status returns the current DJ state.
@@ -161,9 +193,22 @@ func (s *Scheduler) generateTrack(ctx context.Context) {
 	s.mu.RLock()
 	genre := s.currentGenre
 	trackDur := s.cfg.TrackDuration
+	captionFn := s.captionFn
+	nameFn := s.nameFn
 	s.mu.RUnlock()
 
-	caption := GetCaption(genre)
+	// Try LLM caption first, fall back to static
+	var caption string
+	if captionFn != nil {
+		caption = captionFn(ctx, genre)
+	}
+	if caption == "" {
+		caption = GetCaption(genre)
+	}
+
+	s.mu.Lock()
+	s.lastCaption = caption
+	s.mu.Unlock()
 
 	log.Printf("Generating %s track...", genre)
 
@@ -196,12 +241,22 @@ func (s *Scheduler) generateTrack(ctx context.Context) {
 		return
 	}
 
-	log.Printf("Track ready: %s (genre: %s)", taskID, genre)
+	// Try LLM name, fall back to deterministic
+	var trackName string
+	if nameFn != nil {
+		trackName = nameFn(ctx, genre, taskID, caption)
+	}
+	if trackName == "" {
+		trackName = TrackName(genre, taskID)
+	}
+
+	log.Printf("Track ready: %s [%s] (genre: %s)", trackName, taskID, genre)
 
 	s.pipeline.Enqueue(audio.TrackInfo{
 		ID:    taskID,
 		Genre: genre,
 		Path:  path,
+		Name:  trackName,
 	})
 }
 

@@ -14,6 +14,7 @@ import (
 	"github.com/satindergrewal/drift/internal/audio"
 	"github.com/satindergrewal/drift/internal/autodj"
 	"github.com/satindergrewal/drift/internal/config"
+	"github.com/satindergrewal/drift/internal/ollama"
 	"github.com/satindergrewal/drift/internal/stream"
 	"github.com/satindergrewal/drift/internal/web"
 )
@@ -55,6 +56,28 @@ func main() {
 		Shift:          cfg.Shift,
 		AudioFormat:    cfg.AudioFormat,
 	})
+	// Ollama LLM (optional -- enhances captions and track names)
+	var ollamaModel string
+	if cfg.OllamaURL != "" {
+		ollamaClient := ollama.NewClient(cfg.OllamaURL, cfg.OllamaModel)
+		ollamaModel = cfg.OllamaModel
+
+		readyCtx, readyCancel := context.WithTimeout(ctx, 30*time.Second)
+		if ollamaClient.WaitForReady(readyCtx) {
+			captionGen := ollama.NewCaptionGenerator(ollamaClient)
+			sched.SetCaptionFunc(captionGen.GenerateCaption)
+			sched.SetNameFunc(func(ctx context.Context, genre, trackID, caption string) string {
+				return captionGen.GenerateName(ctx, genre, caption)
+			})
+			log.Printf("Ollama connected: %s (LLM captions enabled)", cfg.OllamaModel)
+		} else {
+			log.Println("Ollama not available, using static captions")
+		}
+		readyCancel()
+	} else {
+		log.Println("Ollama not configured (set OLLAMA_URL to enable LLM captions)")
+	}
+
 	go sched.Run(ctx)
 
 	// WebRTC handler (track peer count for status)
@@ -84,16 +107,23 @@ func main() {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// Use stored name, fall back to deterministic
+		trackName := track.Name
+		if trackName == "" {
+			trackName = autodj.TrackName(track.Genre, track.ID)
+		}
+
 		json.NewEncoder(w).Encode(map[string]any{
 			"genre":            djStatus.CurrentGenre,
 			"auto_dj":          djStatus.AutoDJ,
 			"dwell_remaining":  djStatus.DwellRemaining,
 			"queue_size":       djStatus.QueueSize,
 			"track_id":         track.ID,
-			"track_name":       autodj.TrackName(track.Genre, track.ID),
+			"track_name":       trackName,
 			"track_path":       track.Path,
 			"position":         pos.Seconds(),
 			"duration":         dur.Seconds(),
+			"caption":          sched.LastCaption(),
 			"http_listeners":   broadcaster.ListenerCount(),
 			"webrtc_listeners": webrtcHandler.PeerCount(),
 			"config": map[string]any{
@@ -104,6 +134,7 @@ func main() {
 				"audio_format":    cfg.AudioFormat,
 				"track_duration":  sched.TrackDuration(),
 				"crossfade":       pipeline.CrossfadeDuration().Seconds(),
+				"llm_model":       ollamaModel,
 			},
 		})
 	})
@@ -162,8 +193,11 @@ func main() {
 			http.Error(w, "no track playing", http.StatusNotFound)
 			return
 		}
-		name := autodj.TrackName(track.Genre, track.ID)
-		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.%s"`, name, cfg.AudioFormat))
+		saveName := track.Name
+		if saveName == "" {
+			saveName = autodj.TrackName(track.Genre, track.ID)
+		}
+		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.%s"`, saveName, cfg.AudioFormat))
 		w.Header().Set("Content-Type", "application/octet-stream")
 		http.ServeFile(w, r, track.Path)
 	})

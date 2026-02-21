@@ -39,6 +39,10 @@ services:
       - RADIO_GUIDANCE_SCALE=4.0
       - RADIO_SHIFT=3.0
       - RADIO_AUDIO_FORMAT=flac
+      - OLLAMA_URL=http://host.docker.internal:11434
+      - OLLAMA_MODEL=qwen3:32b
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       acestep:
         condition: service_healthy

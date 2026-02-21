@@ -38,6 +38,10 @@ type Config struct {
 	GuidanceScale  float64 // CFG strength (base/sft only, 4.0 is sweet spot)
 	Shift          float64 // timestep shift (1.0-5.0, base model only)
 	AudioFormat    string  // output format: flac, mp3, wav
+
+	// Ollama (optional, for LLM-powered captions)
+	OllamaURL   string // e.g. http://localhost:11434
+	OllamaModel string // e.g. qwen3:32b
 }
 
 // Load reads configuration from environment variables with sane defaults.
@@ -59,6 +63,9 @@ func Load() Config {
 		GuidanceScale:     envFloat("RADIO_GUIDANCE_SCALE", 4.0),
 		Shift:             envFloat("RADIO_SHIFT", 3.0),
 		AudioFormat:       envStr("RADIO_AUDIO_FORMAT", "flac"),
+
+		OllamaURL:   envStr("OLLAMA_URL", ""),
+		OllamaModel: envStr("OLLAMA_MODEL", "qwen3:32b"),
 	}
 }
 

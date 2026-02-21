@@ -353,6 +353,11 @@
     <div class="stat-item"><span class="stat-label">Track length</span><span class="stat-value" id="statTrackLen">--</span></div>
     <div class="stat-item"><span class="stat-label">Crossfade</span><span class="stat-value" id="statCrossfade">--</span></div>
     <div class="stat-item"><span class="stat-label">Listeners</span><span class="stat-value" id="statListeners">0</span></div>
+    <div class="stat-item"><span class="stat-label">LLM</span><span class="stat-value" id="statLLM">--</span></div>
+  </div>
+  <div id="captionRow" style="margin-top:0.75rem;padding-top:0.5rem;border-top:1px solid #1a1a24;display:none">
+    <div style="font-size:0.7rem;color:#555;margin-bottom:0.25rem">Caption</div>
+    <div id="statCaption" style="font-size:0.75rem;color:#888;font-style:italic;line-height:1.4"></div>
   </div>
 </div>
 
@@ -581,6 +586,7 @@ setInterval(async () => {
       document.getElementById('statTrackLen').textContent = data.config.track_duration + 's';
       document.getElementById('statCrossfade').textContent = data.config.crossfade + 's';
       document.getElementById('statListeners').textContent = total;
+      document.getElementById('statLLM').textContent = data.config.llm_model || 'off';
 
       // Sync sliders with server state (only if user isn't dragging)
       if (document.activeElement !== trackDurSlider) {
@@ -591,6 +597,14 @@ setInterval(async () => {
         crossfadeSlider.value = data.config.crossfade;
         document.getElementById('crossfadeValue').textContent = data.config.crossfade + 's';
       }
+    }
+
+    // Caption display (shown when LLM is generating captions)
+    if (data.caption) {
+      document.getElementById('captionRow').style.display = 'block';
+      document.getElementById('statCaption').textContent = data.caption;
+    } else {
+      document.getElementById('captionRow').style.display = 'none';
     }
 
   } catch (e) {
