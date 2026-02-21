@@ -55,7 +55,7 @@ func Load() Config {
 
 		StartingGenre:     envStr("RADIO_GENRE", "lofi hip hop"),
 		TrackDuration:     envInt("RADIO_TRACK_DURATION", 90),
-		CrossfadeDuration: time.Duration(envInt("RADIO_CROSSFADE_DURATION", 8)) * time.Second,
+		CrossfadeDuration: time.Duration(envInt("RADIO_CROSSFADE_DURATION", 18)) * time.Second,
 		BufferAhead:       envInt("RADIO_BUFFER_AHEAD", 3),
 		DwellMin:          envInt("RADIO_DWELL_MIN", 300),
 		DwellMax:          envInt("RADIO_DWELL_MAX", 900),
