@@ -231,7 +231,11 @@ func (s *Scheduler) Run(ctx context.Context) {
 		}
 		s.mu.Lock()
 		if s.idle {
-			log.Printf("Listener connected -- resuming generation (%d listeners)", listeners)
+			if listeners > 0 {
+				log.Printf("Listener connected -- resuming generation (%d listeners)", listeners)
+			} else {
+				log.Println("Buffer empty -- generating standby track")
+			}
 			s.idle = false
 		}
 		s.mu.Unlock()
