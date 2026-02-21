@@ -42,44 +42,108 @@ func GetCaption(genre string) string {
 	return "Instrumental music, " + genre + " style, professional studio production, warm and immersive sound"
 }
 
-// genreAdjectives gives each genre a pool of evocative descriptors for track names.
-var genreAdjectives = map[string][]string{
-	"ambient":       {"floating", "weightless", "still", "glacial", "infinite"},
-	"chillwave":     {"hazy", "sunlit", "faded", "dreamy", "pastel"},
-	"lofi hip hop":  {"rainy", "dusty", "warm", "mellow", "quiet"},
-	"jazz":          {"smoky", "midnight", "velvet", "golden", "swinging"},
-	"bossa nova":    {"coastal", "breezy", "gentle", "tropical", "swaying"},
-	"acoustic folk": {"wooded", "fireside", "open", "rustic", "earthen"},
-	"classical":     {"delicate", "flowing", "stately", "luminous", "grand"},
-	"cinematic":     {"epic", "soaring", "vast", "rising", "thundering"},
-	"synthwave":     {"neon", "chrome", "pulsing", "electric", "retro"},
-	"electronic":    {"radiant", "surging", "prismatic", "kinetic", "orbital"},
-	"drum and bass": {"liquid", "rolling", "dark", "charged", "relentless"},
-	"disco funk":    {"groovy", "sparkling", "tight", "strutting", "vivid"},
-	"indie rock":    {"bright", "jangling", "wistful", "spirited", "raw"},
-	"rock":          {"thunderous", "blazing", "driven", "roaring", "massive"},
+// trackWords holds adjective and noun pools for generating track names per genre.
+// Names are "adjective noun" pairs like "smoky keys" or "neon grid".
+type trackWords struct {
+	adjectives []string
+	nouns      []string
+}
+
+var genreWords = map[string]trackWords{
+	"ambient": {
+		adjectives: []string{"floating", "weightless", "still", "glacial", "infinite", "deep", "fading", "hollow", "drifting", "crystalline", "submerged", "distant"},
+		nouns:      []string{"void", "haze", "tide", "fog", "orbit", "breath", "glacier", "nebula", "silence", "expanse", "shimmer", "glow"},
+	},
+	"chillwave": {
+		adjectives: []string{"hazy", "sunlit", "faded", "dreamy", "pastel", "golden", "washed", "lazy", "coastal", "warm", "blurred", "muted"},
+		nouns:      []string{"shore", "sunset", "tape", "glow", "polaroid", "tide", "haze", "mirage", "breeze", "boardwalk", "bloom", "dusk"},
+	},
+	"lofi hip hop": {
+		adjectives: []string{"rainy", "dusty", "warm", "mellow", "quiet", "late", "sleepy", "dimmed", "faded", "cozy", "worn", "gentle"},
+		nouns:      []string{"vinyl", "pages", "windowsill", "lamp", "sketch", "rooftop", "notebook", "coffee", "curtain", "alley", "attic", "rain"},
+	},
+	"jazz": {
+		adjectives: []string{"smoky", "midnight", "velvet", "golden", "swinging", "dim", "warm", "slow", "dark", "cool", "muted", "rich"},
+		nouns:      []string{"keys", "brass", "lounge", "walk", "quarter", "glass", "satin", "room", "hour", "standard", "corner", "blue"},
+	},
+	"bossa nova": {
+		adjectives: []string{"coastal", "breezy", "gentle", "tropical", "swaying", "soft", "sunlit", "quiet", "warm", "easy", "languid", "tender"},
+		nouns:      []string{"terrace", "palm", "wave", "shade", "garden", "hammock", "cove", "balcony", "rain", "veranda", "island", "moon"},
+	},
+	"acoustic folk": {
+		adjectives: []string{"wooded", "fireside", "open", "rustic", "earthen", "amber", "weathered", "honest", "quiet", "still", "humble", "golden"},
+		nouns:      []string{"trail", "porch", "valley", "creek", "field", "timber", "lantern", "harvest", "meadow", "cabin", "ridge", "ember"},
+	},
+	"classical": {
+		adjectives: []string{"delicate", "flowing", "stately", "luminous", "grand", "serene", "noble", "graceful", "tender", "poised", "austere", "radiant"},
+		nouns:      []string{"sonata", "garden", "waltz", "aria", "hall", "portrait", "reverie", "promenade", "canon", "fountain", "minuet", "passage"},
+	},
+	"cinematic": {
+		adjectives: []string{"epic", "soaring", "vast", "rising", "thundering", "sweeping", "towering", "bold", "triumphant", "distant", "burning", "ancient"},
+		nouns:      []string{"horizon", "summit", "empire", "voyage", "fortress", "storm", "dawn", "exodus", "titan", "frontier", "requiem", "ascent"},
+	},
+	"synthwave": {
+		adjectives: []string{"neon", "chrome", "pulsing", "electric", "retro", "violet", "laser", "wired", "digital", "glowing", "turbo", "phantom"},
+		nouns:      []string{"grid", "drive", "signal", "circuit", "chase", "vector", "arcade", "skyline", "runner", "highway", "blade", "pulse"},
+	},
+	"electronic": {
+		adjectives: []string{"radiant", "surging", "prismatic", "kinetic", "orbital", "bright", "shifting", "fluid", "charged", "fractal", "rapid", "spectral"},
+		nouns:      []string{"pulse", "wave", "prism", "flux", "spark", "cluster", "sphere", "cascade", "node", "beam", "echo", "core"},
+	},
+	"drum and bass": {
+		adjectives: []string{"liquid", "rolling", "dark", "charged", "relentless", "deep", "fractured", "razor", "heavy", "rapid", "volatile", "fierce"},
+		nouns:      []string{"drop", "tunnel", "wire", "break", "concrete", "volt", "surge", "pressure", "edge", "shadow", "siren", "vortex"},
+	},
+	"disco funk": {
+		adjectives: []string{"groovy", "sparkling", "tight", "strutting", "vivid", "slick", "golden", "hot", "smooth", "electric", "funky", "glossy"},
+		nouns:      []string{"strut", "floor", "mirror", "roller", "glitter", "groove", "spin", "flash", "diva", "velvet", "fever", "step"},
+	},
+	"indie rock": {
+		adjectives: []string{"bright", "jangling", "wistful", "spirited", "raw", "loose", "restless", "hazy", "breezy", "sharp", "earnest", "warm"},
+		nouns:      []string{"rooftop", "highway", "postcard", "flicker", "coast", "detour", "signal", "garage", "daylight", "corner", "letter", "echo"},
+	},
+	"rock": {
+		adjectives: []string{"thunderous", "blazing", "driven", "roaring", "massive", "heavy", "fierce", "wild", "burning", "raw", "crushing", "loud"},
+		nouns:      []string{"anthem", "riff", "volt", "storm", "iron", "fuel", "hammer", "howl", "forge", "strike", "engine", "thunder"},
+	},
+}
+
+// kept for backward compat in tests
+var genreAdjectives = func() map[string][]string {
+	m := make(map[string][]string, len(genreWords))
+	for g, w := range genreWords {
+		m[g] = w.adjectives
+	}
+	return m
+}()
+
+// trackHash returns a stable unsigned hash from the full track ID string.
+func trackHash(s string) uint64 {
+	// FNV-1a inspired, uses the entire string for better distribution
+	var h uint64 = 14695981039346656037
+	for i := 0; i < len(s); i++ {
+		h ^= uint64(s[i])
+		h *= 1099511628211
+	}
+	return h
 }
 
 // TrackName generates a human-readable name from genre and track ID.
-// Uses the first 4 hex chars of the ID to pick a deterministic adjective.
+// Produces "adjective noun" pairs like "smoky keys" or "neon grid".
 func TrackName(genre, trackID string) string {
 	if genre == "" || trackID == "" {
 		return ""
 	}
 
-	adjs := genreAdjectives[genre]
-	if len(adjs) == 0 {
+	words, ok := genreWords[genre]
+	if !ok || len(words.adjectives) == 0 {
 		return genre + " session"
 	}
 
-	// Use first hex chars of track ID as a simple hash for deterministic pick
-	var h int
-	for i := 0; i < len(trackID) && i < 8; i++ {
-		h = h*31 + int(trackID[i])
-	}
-	if h < 0 {
-		h = -h
-	}
+	h := trackHash(trackID)
 
-	return adjs[h%len(adjs)] + " " + genre
+	adj := words.adjectives[h%uint64(len(words.adjectives))]
+	noun := words.nouns[(h/uint64(len(words.adjectives)))%uint64(len(words.nouns))]
+
+	return adj + " " + noun
 }

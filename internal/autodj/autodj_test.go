@@ -185,8 +185,15 @@ func TestTrackNameKnownGenre(t *testing.T) {
 	if name == "" {
 		t.Fatal("TrackName returned empty for known genre")
 	}
-	if !contains(name, "jazz") {
-		t.Errorf("TrackName should contain genre: got %q", name)
+	// Should be "adjective noun" format (two words)
+	parts := 0
+	for i := 0; i < len(name); i++ {
+		if name[i] == ' ' {
+			parts++
+		}
+	}
+	if parts != 1 {
+		t.Errorf("TrackName should be two words, got %q", name)
 	}
 }
 
@@ -214,11 +221,33 @@ func TestTrackNameUnknownGenre(t *testing.T) {
 	}
 }
 
-func TestAllGenresHaveAdjectives(t *testing.T) {
+func TestTrackNameVariety(t *testing.T) {
+	// With 12 adjectives x 12 nouns = 144 combos, 10 different IDs should give variety
+	seen := make(map[string]bool)
+	ids := []string{
+		"aaa-111", "bbb-222", "ccc-333", "ddd-444", "eee-555",
+		"fff-666", "ggg-777", "hhh-888", "iii-999", "jjj-000",
+	}
+	for _, id := range ids {
+		seen[TrackName("jazz", id)] = true
+	}
+	if len(seen) < 5 {
+		t.Errorf("Expected at least 5 unique names from 10 IDs, got %d: %v", len(seen), seen)
+	}
+}
+
+func TestAllGenresHaveWords(t *testing.T) {
 	for name := range MoodGraph {
-		adjs := genreAdjectives[name]
-		if len(adjs) == 0 {
-			t.Errorf("Genre %q has no adjectives for track naming", name)
+		words, ok := genreWords[name]
+		if !ok {
+			t.Errorf("Genre %q missing from genreWords", name)
+			continue
+		}
+		if len(words.adjectives) < 10 {
+			t.Errorf("Genre %q has only %d adjectives (want 10+)", name, len(words.adjectives))
+		}
+		if len(words.nouns) < 10 {
+			t.Errorf("Genre %q has only %d nouns (want 10+)", name, len(words.nouns))
 		}
 	}
 }
