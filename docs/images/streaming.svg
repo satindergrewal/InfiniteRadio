@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+  <defs>
+    <marker id="a1" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="a2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#059669"/>
+    </marker>
+  </defs>
+
+  <rect width="800" height="480" rx="12" fill="#0d1117"/>
+  <text x="400" y="38" text-anchor="middle" fill="#e6edf3" font-size="18" font-weight="600" letter-spacing="0.1em">STREAMING ARCHITECTURE</text>
+
+  <!-- Pipeline source -->
+  <rect x="30" y="180" width="160" height="70" rx="8" fill="#1a1a2e" stroke="#5b21b6" stroke-width="1.5"/>
+  <text x="110" y="208" text-anchor="middle" fill="#a78bfa" font-size="12" font-weight="600">Pipeline</text>
+  <text x="110" y="228" text-anchor="middle" fill="#484f58" font-size="9">20ms PCM frames</text>
+  <text x="110" y="240" text-anchor="middle" fill="#484f58" font-size="9">at real-time rate</text>
+
+  <!-- Arrow to broadcaster -->
+  <line x1="190" y1="215" x2="260" y2="215" stroke="#7c3aed" stroke-width="2" marker-end="url(#a1)"/>
+  <text x="225" y="207" text-anchor="middle" fill="#484f58" font-size="8">chan []int16</text>
+
+  <!-- Broadcaster -->
+  <rect x="265" y="160" width="180" height="110" rx="8" fill="#161b22" stroke="#7c3aed" stroke-width="2"/>
+  <text x="355" y="190" text-anchor="middle" fill="#e6edf3" font-size="14" font-weight="600">Broadcaster</text>
+  <text x="355" y="210" text-anchor="middle" fill="#a78bfa" font-size="10">1 source -> N listeners</text>
+  <text x="355" y="230" text-anchor="middle" fill="#484f58" font-size="9">Buffered channels (150 frames)</text>
+  <text x="355" y="245" text-anchor="middle" fill="#484f58" font-size="9">Drop if listener too slow</text>
+
+  <!-- Fan-out lines -->
+  <!-- To HTTP listener 1 -->
+  <line x1="445" y1="190" x2="530" y2="90" stroke="#059669" stroke-width="1.5" marker-end="url(#a2)"/>
+  <!-- To HTTP listener 2 -->
+  <line x1="445" y1="210" x2="530" y2="190" stroke="#059669" stroke-width="1.5" marker-end="url(#a2)"/>
+  <!-- To WebRTC listener -->
+  <line x1="445" y1="240" x2="530" y2="310" stroke="#059669" stroke-width="1.5" marker-end="url(#a2)"/>
+  <!-- To HTTP listener 3 -->
+  <line x1="445" y1="255" x2="530" y2="400" stroke="#059669" stroke-width="1.5" marker-end="url(#a2)"/>
+
+  <!-- HTTP Listener 1 -->
+  <rect x="535" y="60" width="230" height="70" rx="8" fill="#0f2818" stroke="#059669" stroke-width="1.5"/>
+  <text x="650" y="85" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600">HTTP Listener (Browser)</text>
+  <text x="650" y="100" text-anchor="middle" fill="#484f58" font-size="9">FFmpeg: PCM -> MP3 (192kbps)</text>
+  <text x="650" y="115" text-anchor="middle" fill="#484f58" font-size="9">&lt;audio src="/stream"&gt;</text>
+
+  <!-- HTTP Listener 2 -->
+  <rect x="535" y="160" width="230" height="70" rx="8" fill="#0f2818" stroke="#059669" stroke-width="1.5"/>
+  <text x="650" y="185" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600">HTTP Listener (VLC)</text>
+  <text x="650" y="200" text-anchor="middle" fill="#484f58" font-size="9">FFmpeg: PCM -> MP3 (192kbps)</text>
+  <text x="650" y="215" text-anchor="middle" fill="#484f58" font-size="9">vlc http://host:8080/stream</text>
+
+  <!-- WebRTC Listener -->
+  <rect x="535" y="275" width="230" height="70" rx="8" fill="#1c1230" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="650" y="300" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="600">WebRTC Listener (Browser)</text>
+  <text x="650" y="315" text-anchor="middle" fill="#484f58" font-size="9">Opus: 128kbps, 48kHz, stereo</text>
+  <text x="650" y="330" text-anchor="middle" fill="#484f58" font-size="9">Pion RTP, ~50ms latency</text>
+
+  <!-- HTTP Listener 3 -->
+  <rect x="535" y="370" width="230" height="70" rx="8" fill="#0f2818" stroke="#059669" stroke-width="1.5"/>
+  <text x="650" y="395" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600">HTTP Listener (mpv)</text>
+  <text x="650" y="410" text-anchor="middle" fill="#484f58" font-size="9">FFmpeg: PCM -> MP3 (192kbps)</text>
+  <text x="650" y="425" text-anchor="middle" fill="#484f58" font-size="9">mpv http://host:8080/stream</text>
+
+  <!-- Key insight box -->
+  <rect x="30" y="310" width="220" height="100" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="42" y="332" fill="#a78bfa" font-size="10" font-weight="600">Key design decision:</text>
+  <text x="42" y="350" fill="#e6edf3" font-size="9">Each HTTP listener gets its own</text>
+  <text x="42" y="364" fill="#e6edf3" font-size="9">FFmpeg encoder. Valid MP3 stream</text>
+  <text x="42" y="378" fill="#e6edf3" font-size="9">from first byte. No keyframe sync</text>
+  <text x="42" y="392" fill="#e6edf3" font-size="9">needed. Scales fine for LAN use.</text>
+</svg>

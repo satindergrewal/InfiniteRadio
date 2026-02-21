@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+  <defs>
+    <filter id="nodeGlow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="calmGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="energyGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#059669" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#059669" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="900" height="560" rx="12" fill="#0d1117"/>
+  <text x="450" y="38" text-anchor="middle" fill="#e6edf3" font-size="18" font-weight="600" letter-spacing="0.1em">AUTO-DJ MOOD GRAPH</text>
+  <text x="450" y="56" text-anchor="middle" fill="#484f58" font-size="11">Transitions only follow edges. Every genre reachable from every other.</text>
+
+  <!-- Calm cluster glow -->
+  <ellipse cx="250" cy="180" rx="250" ry="140" fill="url(#calmGrad)"/>
+  <!-- Energy cluster glow -->
+  <ellipse cx="620" cy="380" rx="230" ry="150" fill="url(#energyGrad)"/>
+
+  <!-- Connection lines (drawn first, behind nodes) -->
+  <!-- ambient to chillwave -->
+  <line x1="120" y1="150" x2="280" y2="130" stroke="#30363d" stroke-width="1.5"/>
+  <!-- ambient to classical -->
+  <line x1="120" y1="150" x2="170" y2="270" stroke="#30363d" stroke-width="1.5"/>
+  <!-- chillwave to lofi hip hop -->
+  <line x1="280" y1="130" x2="430" y2="110" stroke="#30363d" stroke-width="1.5"/>
+  <!-- chillwave to classical -->
+  <line x1="280" y1="130" x2="170" y2="270" stroke="#30363d" stroke-width="1.5"/>
+  <!-- chillwave to synthwave -->
+  <line x1="280" y1="130" x2="400" y2="300" stroke="#30363d" stroke-width="1.5"/>
+  <!-- lofi hip hop to jazz -->
+  <line x1="430" y1="110" x2="600" y2="120" stroke="#30363d" stroke-width="1.5"/>
+  <!-- jazz to bossa nova -->
+  <line x1="600" y1="120" x2="770" y2="100" stroke="#30363d" stroke-width="1.5"/>
+  <!-- jazz to acoustic folk -->
+  <line x1="600" y1="120" x2="700" y2="210" stroke="#30363d" stroke-width="1.5"/>
+  <!-- classical to cinematic -->
+  <line x1="170" y1="270" x2="130" y2="380" stroke="#30363d" stroke-width="1.5"/>
+  <!-- cinematic to indie rock -->
+  <line x1="130" y1="380" x2="270" y2="430" stroke="#30363d" stroke-width="1.5"/>
+  <!-- synthwave to electronic -->
+  <line x1="400" y1="300" x2="560" y2="340" stroke="#30363d" stroke-width="1.5"/>
+  <!-- synthwave to indie rock -->
+  <line x1="400" y1="300" x2="270" y2="430" stroke="#30363d" stroke-width="1.5"/>
+  <!-- electronic to drum and bass -->
+  <line x1="560" y1="340" x2="730" y2="320" stroke="#30363d" stroke-width="1.5"/>
+  <!-- electronic to disco funk -->
+  <line x1="560" y1="340" x2="580" y2="450" stroke="#30363d" stroke-width="1.5"/>
+  <!-- disco funk to rock -->
+  <line x1="580" y1="450" x2="400" y2="490" stroke="#30363d" stroke-width="1.5"/>
+  <!-- indie rock to rock -->
+  <line x1="270" y1="430" x2="400" y2="490" stroke="#30363d" stroke-width="1.5"/>
+
+  <!-- Genre nodes -->
+  <!-- ambient -->
+  <circle cx="120" cy="150" r="28" fill="#1c1230" stroke="#7c3aed" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="120" y="154" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="500">ambient</text>
+
+  <!-- chillwave -->
+  <circle cx="280" cy="130" r="28" fill="#1c1230" stroke="#7c3aed" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="280" y="134" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="500">chillwave</text>
+
+  <!-- lofi hip hop -->
+  <circle cx="430" cy="110" r="35" fill="#1c1230" stroke="#a78bfa" stroke-width="2.5" filter="url(#nodeGlow)"/>
+  <text x="430" y="107" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="600">lofi</text>
+  <text x="430" y="120" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="600">hip hop</text>
+  <text x="430" y="80" text-anchor="middle" fill="#a78bfa" font-size="8" font-style="italic">default start</text>
+
+  <!-- jazz -->
+  <circle cx="600" cy="120" r="28" fill="#1c1230" stroke="#7c3aed" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="600" y="124" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="500">jazz</text>
+
+  <!-- bossa nova -->
+  <circle cx="770" cy="100" r="28" fill="#1c1230" stroke="#7c3aed" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="770" y="97" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="500">bossa</text>
+  <text x="770" y="109" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="500">nova</text>
+
+  <!-- acoustic folk -->
+  <circle cx="700" cy="210" r="28" fill="#1c1230" stroke="#7c3aed" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="700" y="207" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="500">acoustic</text>
+  <text x="700" y="219" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="500">folk</text>
+
+  <!-- classical -->
+  <circle cx="170" cy="270" r="28" fill="#1c1230" stroke="#7c3aed" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="170" y="274" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="500">classical</text>
+
+  <!-- cinematic -->
+  <circle cx="130" cy="380" r="28" fill="#1a2e1c" stroke="#059669" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="130" y="384" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="500">cinematic</text>
+
+  <!-- synthwave -->
+  <circle cx="400" cy="300" r="30" fill="#1a2e1c" stroke="#059669" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="400" y="304" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="500">synthwave</text>
+
+  <!-- electronic -->
+  <circle cx="560" cy="340" r="30" fill="#1a2e1c" stroke="#059669" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="560" y="344" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="500">electronic</text>
+
+  <!-- drum and bass -->
+  <circle cx="730" cy="320" r="28" fill="#1a2e1c" stroke="#059669" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="730" y="317" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="500">drum &amp;</text>
+  <text x="730" y="329" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="500">bass</text>
+
+  <!-- disco funk -->
+  <circle cx="580" cy="450" r="28" fill="#1a2e1c" stroke="#059669" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="580" y="447" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="500">disco</text>
+  <text x="580" y="459" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="500">funk</text>
+
+  <!-- indie rock -->
+  <circle cx="270" cy="430" r="28" fill="#1a2e1c" stroke="#059669" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="270" y="427" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="500">indie</text>
+  <text x="270" y="439" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="500">rock</text>
+
+  <!-- rock -->
+  <circle cx="400" cy="490" r="28" fill="#1a2e1c" stroke="#059669" stroke-width="2" filter="url(#nodeGlow)"/>
+  <text x="400" y="494" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="500">rock</text>
+
+  <!-- Cluster labels -->
+  <text x="80" y="90" fill="#7c3aed" font-size="10" font-weight="500" opacity="0.6">CALM</text>
+  <text x="760" y="460" fill="#059669" font-size="10" font-weight="500" opacity="0.6">ENERGETIC</text>
+
+  <!-- Legend -->
+  <rect x="720" y="480" width="160" height="60" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <circle cx="740" cy="500" r="6" fill="#1c1230" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="755" y="504" fill="#484f58" font-size="9">Calm genre</text>
+  <circle cx="740" cy="522" r="6" fill="#1a2e1c" stroke="#059669" stroke-width="1.5"/>
+  <text x="755" y="526" fill="#484f58" font-size="9">Energetic genre</text>
+</svg>

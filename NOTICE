@@ -1,0 +1,15 @@
+drift (codename)
+Copyright 2026 Satinder Grewal
+
+This project is a derivative work based on InfiniteRadio by LaurieWired.
+Original project: https://github.com/LaurieWired/InfiniteRadio
+Original author: LaurieWired (https://twitter.com/lauriewired)
+Original license: Apache License 2.0
+
+The following components were adapted from the original InfiniteRadio project:
+- WebRTC streaming architecture and Opus encoding configuration
+- Smoothstep crossfade algorithm for audio transitions
+- Web UI design patterns (dark mode, genre selection)
+
+The original InfiniteRadio source code is preserved in the _original/ directory
+for reference and attribution purposes.

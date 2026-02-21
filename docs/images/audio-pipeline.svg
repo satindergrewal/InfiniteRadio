@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 700" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+  <defs>
+    <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#059669"/>
+    </marker>
+  </defs>
+
+  <rect width="720" height="700" rx="12" fill="#0d1117"/>
+  <text x="360" y="38" text-anchor="middle" fill="#e6edf3" font-size="18" font-weight="600" letter-spacing="0.1em">AUDIO PIPELINE</text>
+
+  <!-- Step 1: ACE-Step Generation -->
+  <rect x="210" y="60" width="300" height="60" rx="8" fill="#0f2818" stroke="#059669" stroke-width="1.5"/>
+  <text x="360" y="85" text-anchor="middle" fill="#34d399" font-size="13" font-weight="600">ACE-Step v1.5</text>
+  <text x="360" y="103" text-anchor="middle" fill="#484f58" font-size="10">Generates MP3 (48kHz stereo, ~7MB per 3-min track)</text>
+
+  <!-- Arrow -->
+  <line x1="360" y1="120" x2="360" y2="150" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="375" y="140" fill="#484f58" font-size="9">.mp3 file</text>
+
+  <!-- Step 2: FFmpeg Decode -->
+  <rect x="210" y="155" width="300" height="60" rx="8" fill="#1a1a2e" stroke="#5b21b6" stroke-width="1.5"/>
+  <text x="360" y="180" text-anchor="middle" fill="#a78bfa" font-size="13" font-weight="600">FFmpeg Decode</text>
+  <text x="360" y="198" text-anchor="middle" fill="#484f58" font-size="10">Subprocess: MP3 -> raw PCM (s16le)</text>
+
+  <!-- Arrow -->
+  <line x1="360" y1="215" x2="360" y2="245" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="375" y="235" fill="#484f58" font-size="9">[]int16</text>
+
+  <!-- Step 3: Background Decoder Goroutine -->
+  <rect x="210" y="250" width="300" height="60" rx="8" fill="#1a1a2e" stroke="#5b21b6" stroke-width="1.5"/>
+  <text x="360" y="275" text-anchor="middle" fill="#a78bfa" font-size="13" font-weight="600">Decoded Track Buffer</text>
+  <text x="360" y="293" text-anchor="middle" fill="#484f58" font-size="10">Pre-decoded in background goroutine (capacity: 4)</text>
+
+  <!-- Arrow -->
+  <line x1="360" y1="310" x2="360" y2="340" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Step 4: Frame Reader + Master Clock -->
+  <rect x="160" y="345" width="400" height="75" rx="8" fill="#161b22" stroke="url(#pg)" stroke-width="1.5"/>
+  <text x="360" y="372" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">Pipeline (Master Clock)</text>
+  <text x="360" y="392" text-anchor="middle" fill="#a78bfa" font-size="10">Reads 20ms frames at real-time rate via time.Ticker</text>
+  <text x="360" y="408" text-anchor="middle" fill="#484f58" font-size="9">960 samples x 2 channels x 2 bytes = 3,840 bytes/frame</text>
+
+  <!-- Crossfade detail box (side) -->
+  <rect x="580" y="310" width="120" height="110" rx="8" fill="#1c1230" stroke="#7c3aed" stroke-width="1"/>
+  <text x="640" y="333" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="600">Crossfade</text>
+  <text x="640" y="352" text-anchor="middle" fill="#e6edf3" font-size="9">Smoothstep</text>
+  <text x="640" y="368" text-anchor="middle" fill="#e6edf3" font-size="9">3t^2 - 2t^3</text>
+  <text x="640" y="388" text-anchor="middle" fill="#484f58" font-size="9">Default: 8s</text>
+  <text x="640" y="404" text-anchor="middle" fill="#484f58" font-size="9">Configurable</text>
+
+  <!-- Smoothstep curve visualization -->
+  <path d="M 595 410 C 600 410, 640 410, 645 390 C 650 370, 675 370, 685 370" fill="none" stroke="#7c3aed" stroke-width="1.5"/>
+
+  <!-- Arrow from crossfade to pipeline -->
+  <line x1="580" y1="375" x2="560" y2="380" stroke="#7c3aed" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Arrow down -->
+  <line x1="360" y1="420" x2="360" y2="455" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="375" y="443" fill="#484f58" font-size="9">[]int16 frames</text>
+
+  <!-- Step 5: Broadcaster -->
+  <rect x="210" y="460" width="300" height="55" rx="8" fill="#161b22" stroke="url(#pg)" stroke-width="1.5"/>
+  <text x="360" y="485" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">Broadcaster</text>
+  <text x="360" y="502" text-anchor="middle" fill="#484f58" font-size="10">Fan-out to N listeners (drop if slow)</text>
+
+  <!-- Fan-out arrows -->
+  <line x1="290" y1="515" x2="180" y2="565" stroke="#059669" stroke-width="2" marker-end="url(#arrG)"/>
+  <line x1="430" y1="515" x2="540" y2="565" stroke="#059669" stroke-width="2" marker-end="url(#arrG)"/>
+
+  <!-- HTTP output -->
+  <rect x="60" y="570" width="240" height="60" rx="8" fill="#0f2818" stroke="#059669" stroke-width="1.5"/>
+  <text x="180" y="595" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600">HTTP Stream (MP3)</text>
+  <text x="180" y="613" text-anchor="middle" fill="#484f58" font-size="10">FFmpeg encodes PCM -> MP3, chunked</text>
+
+  <!-- WebRTC output -->
+  <rect x="420" y="570" width="240" height="60" rx="8" fill="#0f2818" stroke="#059669" stroke-width="1.5"/>
+  <text x="540" y="595" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600">WebRTC Stream (Opus)</text>
+  <text x="540" y="613" text-anchor="middle" fill="#484f58" font-size="10">opus.v2 encoder -> Pion RTP</text>
+
+  <!-- Labels at bottom -->
+  <text x="180" y="650" text-anchor="middle" fill="#484f58" font-size="9">VLC, mpv, browser &lt;audio&gt;</text>
+  <text x="540" y="650" text-anchor="middle" fill="#484f58" font-size="9">Browser (low latency, ~50ms)</text>
+
+  <!-- Skip signal (side annotation) -->
+  <rect x="20" y="360" width="120" height="40" rx="6" fill="#2d1a1a" stroke="#ef4444" stroke-width="1"/>
+  <text x="80" y="378" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="500">Skip Signal</text>
+  <text x="80" y="392" text-anchor="middle" fill="#484f58" font-size="8">interrupts frame loop</text>
+  <line x1="140" y1="380" x2="160" y2="380" stroke="#ef4444" stroke-width="1" stroke-dasharray="3,2"/>
+</svg>

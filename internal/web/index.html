@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>drift radio</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: lowercase;
+    color: #fff;
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    color: #666;
+    letter-spacing: 0.15em;
+    margin-bottom: 2rem;
+  }
+
+  .now-playing {
+    background: #12121a;
+    border: 1px solid #1e1e2e;
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .genre-label {
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: #a78bfa;
+    margin-bottom: 0.5rem;
+  }
+
+  .track-time {
+    font-size: 0.9rem;
+    color: #888;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #1e1e2e;
+    border-radius: 2px;
+    margin-top: 0.75rem;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #7c3aed, #a78bfa);
+    border-radius: 2px;
+    transition: width 2s linear;
+    width: 0%;
+  }
+
+  .controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+  }
+
+  button {
+    background: #1e1e2e;
+    color: #e0e0e0;
+    border: 1px solid #2e2e3e;
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  button:hover {
+    background: #2e2e3e;
+    border-color: #7c3aed;
+  }
+
+  button:active {
+    transform: scale(0.97);
+  }
+
+  button.active {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #fff;
+  }
+
+  .play-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .play-btn.active {
+    background: #7c3aed;
+  }
+
+  .rating {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .rating button {
+    font-size: 1.1rem;
+    padding: 0.5rem 0.8rem;
+  }
+
+  .genre-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 1.5rem;
+  }
+
+  .genre-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+    text-align: center;
+    text-transform: lowercase;
+  }
+
+  .genre-btn.current {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #fff;
+  }
+
+  .dj-status {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .dj-status span {
+    color: #a78bfa;
+  }
+
+  .section-label {
+    font-size: 0.75rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .listeners {
+    font-size: 0.75rem;
+    color: #444;
+    margin-top: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>drift</h1>
+<p class="subtitle">infinite ai radio</p>
+
+<div class="now-playing">
+  <div class="genre-label" id="genre">waiting...</div>
+  <div class="track-time">
+    <span id="position">0:00</span> / <span id="duration">0:00</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="play-btn" id="playBtn" onclick="togglePlay()">&#9654;</button>
+  <button onclick="skip()">Skip</button>
+  <button id="autoDJBtn" class="active" onclick="toggleAutoDJ()">Auto-DJ</button>
+  <div class="rating">
+    <button onclick="rate(1)">&#128077;</button>
+    <button onclick="rate(-1)">&#128078;</button>
+  </div>
+</div>
+
+<div class="dj-status" id="djStatus">
+  Auto-DJ: transitioning in <span id="dwellTime">--</span>s &middot; <span id="queueSize">0</span> tracks buffered
+</div>
+
+<p class="section-label">genres</p>
+<div class="genre-grid" id="genreGrid"></div>
+
+<p class="listeners" id="listeners"></p>
+
+<audio id="audio" preload="none"></audio>
+
+<script>
+const genres = [
+  'ambient', 'chillwave', 'lofi hip hop', 'jazz', 'bossa nova',
+  'acoustic folk', 'classical', 'cinematic', 'synthwave', 'electronic',
+  'drum and bass', 'disco funk', 'indie rock', 'rock'
+];
+
+const audio = document.getElementById('audio');
+const playBtn = document.getElementById('playBtn');
+let playing = false;
+
+// Build genre grid
+const grid = document.getElementById('genreGrid');
+genres.forEach(g => {
+  const btn = document.createElement('button');
+  btn.className = 'genre-btn';
+  btn.textContent = g;
+  btn.onclick = () => setGenre(g);
+  btn.id = 'genre-' + g.replace(/\s+/g, '-');
+  grid.appendChild(btn);
+});
+
+function togglePlay() {
+  if (playing) {
+    audio.pause();
+    audio.src = '';
+    playing = false;
+    playBtn.innerHTML = '&#9654;';
+    playBtn.classList.remove('active');
+  } else {
+    audio.src = '/stream';
+    audio.play().catch(() => {});
+    playing = true;
+    playBtn.innerHTML = '&#9646;&#9646;';
+    playBtn.classList.add('active');
+  }
+}
+
+function skip() {
+  fetch('/api/skip', { method: 'POST' });
+}
+
+function setGenre(genre) {
+  fetch('/api/genre', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ genre })
+  });
+}
+
+function toggleAutoDJ() {
+  const btn = document.getElementById('autoDJBtn');
+  const enabled = !btn.classList.contains('active');
+  fetch('/api/autodj', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled })
+  });
+  btn.classList.toggle('active');
+}
+
+function rate(rating) {
+  fetch('/api/rate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rating })
+  });
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+// Poll status every 2 seconds
+setInterval(async () => {
+  try {
+    const resp = await fetch('/api/status');
+    const data = await resp.json();
+
+    document.getElementById('genre').textContent = data.genre || 'waiting...';
+    document.getElementById('position').textContent = formatTime(data.position || 0);
+    document.getElementById('duration').textContent = formatTime(data.duration || 0);
+    document.getElementById('dwellTime').textContent = Math.round(data.dwell_remaining || 0);
+    document.getElementById('queueSize').textContent = data.queue_size || 0;
+
+    // Progress bar
+    if (data.duration > 0) {
+      const pct = ((data.position || 0) / data.duration) * 100;
+      document.getElementById('progress').style.width = pct + '%';
+    }
+
+    // Highlight current genre
+    genres.forEach(g => {
+      const el = document.getElementById('genre-' + g.replace(/\s+/g, '-'));
+      if (el) {
+        el.classList.toggle('current', g === data.genre);
+      }
+    });
+
+    // Auto-DJ button state
+    const djBtn = document.getElementById('autoDJBtn');
+    djBtn.classList.toggle('active', data.auto_dj);
+
+    // Listener count
+    const total = (data.http_listeners || 0) + (data.webrtc_listeners || 0);
+    document.getElementById('listeners').textContent =
+      total > 0 ? total + ' listener' + (total !== 1 ? 's' : '') + ' connected' : '';
+
+  } catch (e) {
+    // API not ready yet
+  }
+}, 2000);
+</script>
+
+</body>
+</html>

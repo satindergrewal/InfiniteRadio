@@ -1,0 +1,15 @@
+# Binary (root only, not cmd/radio/)
+/radio
+
+# Claude Code local settings
+.claude/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

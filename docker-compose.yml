@@ -1,0 +1,44 @@
+services:
+  acestep:
+    image: valyriantech/ace-step-1.5
+    ports:
+      - "8001:8000"
+    volumes:
+      - acestep-outputs:/app/outputs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+
+  radio:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - acestep-outputs:/acestep-outputs:ro
+    environment:
+      - ACESTEP_API_URL=http://acestep:8000
+      - ACESTEP_OUTPUT_DIR=/acestep-outputs
+      - RADIO_PORT=8080
+      - RADIO_GENRE=lofi hip hop
+      - RADIO_TRACK_DURATION=180
+      - RADIO_CROSSFADE_DURATION=8
+      - RADIO_BUFFER_AHEAD=3
+      - RADIO_DWELL_MIN=300
+      - RADIO_DWELL_MAX=900
+      - RADIO_INFERENCE_STEPS=8
+    depends_on:
+      acestep:
+        condition: service_healthy
+
+volumes:
+  acestep-outputs:
