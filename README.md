@@ -34,42 +34,15 @@ vlc http://<your-server-ip>:8080/stream
 
 ## Architecture
 
-```
-Docker Compose
-+-------------------------------------------------+
-|  radio (Go binary, CPU container, :8080)        |
-|  +-- Auto-DJ (mood graph, genre scheduling)     |
-|  +-- Audio Pipeline (decode, crossfade, buffer)  |
-|  +-- HTTP Stream /stream (MP3, chunked)          |
-|  +-- WebRTC Stream /offer (Opus, low-latency)    |
-|  +-- REST API /api/* (status, genre, skip)       |
-|  +-- Web UI / (dark mode, genre controls)        |
-|       |                                          |
-|       | HTTP (internal Docker network)           |
-|       v                                          |
-|  acestep (Python, GPU container, :8000)          |
-|  +-- ACE-Step v1.5 FastAPI                       |
-|                                                  |
-|  Shared volume: acestep-outputs (audio files)    |
-+-------------------------------------------------+
-```
+![Architecture](docs/images/architecture.svg)
 
 **Audio pipeline:**
-```
-ACE-Step generates MP3
-    |
-FFmpeg decodes to PCM (48kHz, stereo, int16)
-    |
-Pipeline reads 20ms frames (960 samples x 2 channels)
-    |
-Crossfade engine blends tracks (smoothstep, configurable duration)
-    |
-Broadcaster fans out to all listeners
-    |
-Per-listener encoding:
-  +-- HTTP: FFmpeg encodes PCM -> MP3 stream
-  +-- WebRTC: Opus encoder -> Pion RTP
-```
+
+![Audio Pipeline](docs/images/audio-pipeline.svg)
+
+**Streaming:**
+
+![Streaming](docs/images/streaming.svg)
 
 ## Configuration
 
@@ -92,17 +65,7 @@ All settings via environment variables in `docker-compose.yml`:
 
 The Auto-DJ walks a mood graph. Transitions only follow edges -- no jumping across the map.
 
-```
-ambient ---- chillwave ---- lofi hip hop ---- jazz ---- bossa nova
-  |              |                              |
-  +-- classical -+                          acoustic folk
-        |        |
-    cinematic    synthwave ---- electronic ---- drum and bass
-        |          |              |
-    indie rock ----+         disco funk
-        |                        |
-       rock --------- ----------+
-```
+![Mood Graph](docs/images/mood-graph.svg)
 
 Override via the web UI or API: `POST /api/genre {"genre": "jazz"}`
 
