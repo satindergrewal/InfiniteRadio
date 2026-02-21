@@ -39,20 +39,26 @@ type CaptionFunc func(ctx context.Context, genre string) string
 // Returns empty string on failure.
 type NameFunc func(ctx context.Context, genre, trackID, caption string) string
 
+// StructureFunc generates section tags for the lyrics field.
+// Returns "[Instrumental]" on failure.
+type StructureFunc func(ctx context.Context, genre, caption string) string
+
 // Scheduler manages genre transitions and track generation.
 type Scheduler struct {
 	client   *acestep.Client
 	pipeline *audio.Pipeline
 	cfg      SchedulerConfig
 
-	captionFn CaptionFunc // optional LLM caption generator
-	nameFn    NameFunc    // optional LLM track name generator
+	captionFn   CaptionFunc   // optional LLM caption generator
+	nameFn      NameFunc      // optional LLM track name generator
+	structureFn StructureFunc // optional LLM structure tag generator
 
 	mu           sync.RWMutex
 	currentGenre string
 	autoDJ       bool
 	dwellEnd     time.Time
 	lastCaption  string // last generated caption (for status display)
+	lastLyrics   string // last generated lyrics/structure tags
 
 	genreOverrideCh chan string
 }
@@ -83,11 +89,25 @@ func (s *Scheduler) SetNameFunc(fn NameFunc) {
 	s.mu.Unlock()
 }
 
+// SetStructureFunc sets the LLM-powered structure tag generator.
+func (s *Scheduler) SetStructureFunc(fn StructureFunc) {
+	s.mu.Lock()
+	s.structureFn = fn
+	s.mu.Unlock()
+}
+
 // LastCaption returns the caption used for the most recent track generation.
 func (s *Scheduler) LastCaption() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.lastCaption
+}
+
+// LastLyrics returns the lyrics/structure tags used for the most recent track.
+func (s *Scheduler) LastLyrics() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.lastLyrics
 }
 
 // Status returns the current DJ state.
@@ -195,6 +215,7 @@ func (s *Scheduler) generateTrack(ctx context.Context) {
 	trackDur := s.cfg.TrackDuration
 	captionFn := s.captionFn
 	nameFn := s.nameFn
+	structureFn := s.structureFn
 	s.mu.RUnlock()
 
 	// Try LLM caption first, fall back to static.
@@ -209,15 +230,24 @@ func (s *Scheduler) generateTrack(ctx context.Context) {
 		caption = GetCaption(genre)
 	}
 
+	// Try LLM structure tags, fall back to plain [Instrumental].
+	lyrics := "[Instrumental]"
+	if structureFn != nil {
+		structCtx, structCancel := context.WithTimeout(ctx, 15*time.Second)
+		lyrics = structureFn(structCtx, genre, caption)
+		structCancel()
+	}
+
 	s.mu.Lock()
 	s.lastCaption = caption
+	s.lastLyrics = lyrics
 	s.mu.Unlock()
 
 	log.Printf("Generating %s track...", genre)
 
 	taskID, err := s.client.Generate(ctx, acestep.GenerateRequest{
 		Caption:        caption,
-		Lyrics:         "[Instrumental]",
+		Lyrics:         lyrics,
 		Duration:       trackDur,
 		InferenceSteps: s.cfg.InferenceSteps,
 		GuidanceScale:  s.cfg.GuidanceScale,

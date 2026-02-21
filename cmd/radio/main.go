@@ -69,7 +69,8 @@ func main() {
 			sched.SetNameFunc(func(ctx context.Context, genre, trackID, caption string) string {
 				return captionGen.GenerateName(ctx, genre, caption)
 			})
-			log.Printf("Ollama connected: %s (LLM captions enabled)", cfg.OllamaModel)
+			sched.SetStructureFunc(captionGen.GenerateStructure)
+			log.Printf("Ollama connected: %s (LLM captions + structure enabled)", cfg.OllamaModel)
 		} else {
 			log.Println("Ollama not available, using static captions")
 		}
@@ -124,7 +125,7 @@ func main() {
 			"position":         pos.Seconds(),
 			"duration":         dur.Seconds(),
 			"caption":          sched.LastCaption(),
-			"lyrics":           "[Instrumental]",
+			"lyrics":           sched.LastLyrics(),
 			"http_listeners":   broadcaster.ListenerCount(),
 			"webrtc_listeners": webrtcHandler.PeerCount(),
 			"config": map[string]any{

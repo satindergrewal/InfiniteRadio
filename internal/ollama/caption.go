@@ -84,6 +84,61 @@ func (g *CaptionGenerator) GenerateCaption(ctx context.Context, genre string) st
 	return caption
 }
 
+// structureSystemPrompt instructs the LLM to generate ACE-Step section tags.
+const structureSystemPrompt = `You are a music structure planner for an AI music model called ACE-Step.
+
+Given a genre and caption, generate section tags that describe the temporal progression of the track.
+
+Rules:
+- Output 3-5 section tags, each on its own line
+- First line MUST be: [Instrumental]
+- Each tag format: [Section Name - brief instrument/texture description]
+- Section names: Intro, Theme, Build, Climax, Bridge, Breakdown, Outro (pick what fits)
+- Descriptions should reference instruments/textures from the caption
+- Create a natural arc: start gentle, build, resolve
+- Keep each tag under 60 characters
+- For short tracks (under 60s), use only 3 sections
+
+NEVER include explanations, numbering, or anything outside the tags.
+
+Example output:
+[Instrumental]
+[Intro - soft pad swells, vinyl crackle fades in]
+[Theme - piano melody enters over warm bass]
+[Build - drums layer in, strings rise]
+[Outro - piano solo, gentle fade]
+
+/no_think`
+
+// GenerateStructure creates section tags for the lyrics field.
+// Returns "[Instrumental]" on failure (safe fallback).
+func (g *CaptionGenerator) GenerateStructure(ctx context.Context, genre, caption string) string {
+	prompt := fmt.Sprintf("Genre: %s\nCaption: %s", genre, caption)
+
+	raw, err := g.client.Generate(ctx, structureSystemPrompt, prompt)
+	if err != nil {
+		log.Printf("Ollama structure generation failed: %v", err)
+		return "[Instrumental]"
+	}
+
+	raw = cleanCaption(raw)
+
+	// Validate: must contain [Instrumental] and at least one section tag
+	if !strings.Contains(raw, "[Instrumental]") {
+		raw = "[Instrumental]\n" + raw
+	}
+
+	// Count bracket tags
+	tagCount := strings.Count(raw, "[")
+	if tagCount < 2 || len(raw) > 500 {
+		log.Printf("Ollama returned unusable structure: %q", raw)
+		return "[Instrumental]"
+	}
+
+	log.Printf("LLM structure [%s]: %s", genre, strings.ReplaceAll(raw, "\n", " | "))
+	return raw
+}
+
 // nameSystemPrompt instructs the LLM to generate evocative track names.
 const nameSystemPrompt = `You are a track name generator for an AI radio station.
 
