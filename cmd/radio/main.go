@@ -79,10 +79,15 @@ func main() {
 		log.Println("Ollama not configured (set OLLAMA_URL to enable LLM captions)")
 	}
 
-	go sched.Run(ctx)
-
 	// WebRTC handler (track peer count for status)
 	webrtcHandler := stream.NewWebRTCHandler(broadcaster)
+
+	// Idle detection: pause generation when nobody is listening
+	sched.SetListenerCountFunc(func() int {
+		return broadcaster.ListenerCount() + webrtcHandler.PeerCount()
+	})
+
+	go sched.Run(ctx)
 
 	// HTTP routes
 	mux := http.NewServeMux()
@@ -117,6 +122,7 @@ func main() {
 		json.NewEncoder(w).Encode(map[string]any{
 			"genre":            djStatus.CurrentGenre,
 			"auto_dj":          djStatus.AutoDJ,
+			"idle":             djStatus.Idle,
 			"dwell_remaining":  djStatus.DwellRemaining,
 			"queue_size":       djStatus.QueueSize,
 			"track_id":         track.ID,

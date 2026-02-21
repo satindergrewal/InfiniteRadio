@@ -28,6 +28,7 @@ type SchedulerConfig struct {
 type SchedulerStatus struct {
 	CurrentGenre   string  `json:"genre"`
 	AutoDJ         bool    `json:"auto_dj"`
+	Idle           bool    `json:"idle"`
 	DwellRemaining float64 `json:"dwell_remaining"` // seconds
 	QueueSize      int     `json:"queue_size"`
 }
@@ -53,9 +54,12 @@ type Scheduler struct {
 	nameFn      NameFunc      // optional LLM track name generator
 	structureFn StructureFunc // optional LLM structure tag generator
 
+	listenerCountFn func() int // returns total listener count (HTTP + WebRTC)
+
 	mu           sync.RWMutex
 	currentGenre string
 	autoDJ       bool
+	idle         bool
 	dwellEnd     time.Time
 	lastCaption  string // last generated caption (for status display)
 	lastLyrics   string // last generated lyrics/structure tags
@@ -87,6 +91,13 @@ func (s *Scheduler) SetNameFunc(fn NameFunc) {
 	s.mu.Lock()
 	s.nameFn = fn
 	s.mu.Unlock()
+}
+
+// SetListenerCountFunc sets the function used to check active listener count.
+// When set, the scheduler pauses generation if no listeners are connected
+// and at least one track is already buffered.
+func (s *Scheduler) SetListenerCountFunc(fn func() int) {
+	s.listenerCountFn = fn
 }
 
 // SetStructureFunc sets the LLM-powered structure tag generator.
@@ -121,6 +132,7 @@ func (s *Scheduler) Status() SchedulerStatus {
 	return SchedulerStatus{
 		CurrentGenre:   s.currentGenre,
 		AutoDJ:         s.autoDJ,
+		Idle:           s.idle,
 		DwellRemaining: remaining,
 		QueueSize:      s.pipeline.QueueSize(),
 	}
@@ -199,6 +211,30 @@ func (s *Scheduler) Run(ctx context.Context) {
 		if autoDJ && expired {
 			s.transitionGenre()
 		}
+
+		// Check if anyone is listening
+		listeners := 0
+		if s.listenerCountFn != nil {
+			listeners = s.listenerCountFn()
+		}
+
+		// Idle mode: skip generation if nobody's listening and we have a track ready
+		if listeners == 0 && s.pipeline.QueueSize() >= 1 {
+			s.mu.Lock()
+			if !s.idle {
+				log.Println("No listeners -- pausing generation")
+				s.idle = true
+			}
+			s.mu.Unlock()
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		s.mu.Lock()
+		if s.idle {
+			log.Printf("Listener connected -- resuming generation (%d listeners)", listeners)
+			s.idle = false
+		}
+		s.mu.Unlock()
 
 		// Keep the generation buffer full
 		if s.pipeline.QueueSize() < s.cfg.BufferAhead {
